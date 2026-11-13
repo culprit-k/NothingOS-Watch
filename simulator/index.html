@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NothingOS Wear — UI simulator</title>
+<style>
+:root{color-scheme:dark;--bg:#090909;--panel:#171717;--line:#303030;--muted:#9b9b9b;--red:#e53935;--white:#f4f4f4}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 10%,#242424,#090909 58%);color:var(--white);font:14px/1.4 Inter,ui-sans-serif,system-ui,sans-serif;min-height:100vh;display:grid;place-items:center;padding:24px}
+main{width:min(100%,760px);display:grid;grid-template-columns:minmax(290px,390px) 1fr;gap:30px;align-items:center}
+.watch-wrap{display:grid;justify-items:center;gap:12px}.watch{width:min(84vw,360px);aspect-ratio:1;border:10px solid #555;border-radius:50%;background:#000;box-shadow:0 25px 70px #000b,inset 0 0 0 2px #888;position:relative;padding:22px;display:grid;place-items:center}
+.screen{width:100%;height:100%;border-radius:50%;overflow:hidden;background:#050505;position:relative;padding:24px 20px;display:flex;flex-direction:column;justify-content:space-between}
+.top{display:flex;justify-content:space-between;color:#aaa;font-size:10px;letter-spacing:.12em;text-transform:uppercase}.dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--red);margin-right:5px}
+.content{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:9px;min-height:0}.time{font-size:clamp(44px,10vw,68px);font-weight:650;letter-spacing:-.08em;line-height:1}.date{font-size:12px;color:#aaa}.wordmark{font-size:12px;letter-spacing:.24em;color:#aaa}.hero{font-size:22px;font-weight:650;letter-spacing:-.04em}.sub{font-size:11px;color:#999}.bottom{display:flex;justify-content:space-between;align-items:center;font-size:10px;color:#aaa}
+.pill{border:1px solid #444;border-radius:30px;padding:6px 10px}.red{color:var(--red)}.tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}.tile{background:#171717;border:1px solid #333;border-radius:13px;padding:10px 8px;font-size:11px;text-align:left}.tile b{display:block;font-size:15px;margin-top:4px}.list{width:100%;display:grid;gap:7px}.item{padding:9px 10px;border-radius:12px;background:#171717;border:1px solid #303030;text-align:left;font-size:11px}.item strong{display:block;font-size:12px;margin-bottom:2px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.controls button,.side button{background:#171717;border:1px solid #393939;color:#eee;padding:9px 12px;border-radius:999px;cursor:pointer}.controls button:hover,.side button:hover{border-color:var(--red)}.side h1{font-size:30px;letter-spacing:-.06em;margin:0 0 8px}.side p{color:#aaa;max-width:34em}.side .note{border-left:2px solid var(--red);padding:10px 14px;background:#151515;color:#bbb;font-size:12px;margin-top:18px}.side .nav{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+@media(max-width:680px){main{grid-template-columns:1fr;gap:22px}.side{max-width:420px}.watch{width:min(82vw,340px)}}
+</style>
+</head>
+<body>
+<main>
+<section class="watch-wrap">
+ <div class="watch"><div class="screen" id="screen">
+  <div class="top"><span><i class="dot"></i>NOTHINGOS</span><span id="battery">BAT 86%</span></div>
+  <div class="content" id="content"></div>
+  <div class="bottom"><span id="conn">● PHONE LINK</span><span id="screenname">HOME</span></div>
+ </div></div>
+ <div class="controls">
+  <button data-go="home">Home</button><button data-go="apps">Apps</button><button data-go="quick">Quick settings</button><button data-go="notifications">Notifications</button>
+ </div>
+</section>
+<section class="side">
+ <div class="wordmark">D398 · CONCEPT BUILD 0.0.1</div>
+ <h1>NothingOS Wear</h1>
+ <p>A simulator-first interface concept for the CMF Watch Pro 2. Tap the controls or use the on-screen navigation to explore the proposed Wear OS-inspired experience.</p>
+ <div class="nav">
+  <button data-go="health">Health</button><button data-go="media">Media</button><button data-go="settings">Settings</button><button data-go="about">About</button>
+ </div>
+ <div class="note"><b>Prototype only.</b> This is a browser UI mock, not watch firmware. It does not connect to the watch, read real sensors, or install anything.</div>
+</section>
+</main>
+<script>
+const content=document.getElementById('content'),screenname=document.getElementById('screenname');
+const pages={
+home:()=>`<div class="wordmark">NOTHING</div><div class="time" id="clock">09:41</div><div class="date" id="date">FRI, NOV 13</div><div class="pill">◉ <span class="red">●</span>  8° · BUKHARA</div>`,
+apps:()=>`<div class="hero">Your apps</div><div class="tiles"><div class="tile" data-page="health">◉ Health<b>Activity</b></div><div class="tile" data-page="media">♫ Media<b>Controls</b></div><div class="tile" data-page="notifications">▤ Alerts<b>Inbox</b></div><div class="tile" data-page="settings">⚙ Settings<b>System</b></div><div class="tile" data-page="timer">◷ Timer<b>Tools</b></div><div class="tile" data-page="about">◌ About<b>D398</b></div></div>`,
+quick:()=>`<div class="hero">Quick settings</div><div class="tiles"><div class="tile">◐ Do not disturb<b class="red">OFF</b></div><div class="tile">⌁ Bluetooth<b>Connected</b></div><div class="tile">☾ Sleep mode<b>OFF</b></div><div class="tile">◉ Brightness<b>Auto</b></div></div>`,
+notifications:()=>`<div class="hero">Notifications</div><div class="list"><div class="item"><strong>Messages · 2 min</strong>You have a new message</div><div class="item"><strong>Calendar · 1 hr</strong>Upcoming event reminder</div><div class="item"><strong>System</strong>Phone connected successfully</div></div>`,
+health:()=>`<div class="hero">Activity</div><div class="tiles"><div class="tile">Steps<b>6,842</b></div><div class="tile">Heart rate<b>72 <small>bpm</small></b></div><div class="tile">Sleep<b>7h 42m</b></div><div class="tile">Move goal<b class="red">68%</b></div></div><div class="sub">DEMO VALUES — NOT LIVE SENSOR DATA</div>`,
+media:()=>`<div class="hero">Now playing</div><div style="font-size:34px">♫</div><b>Midnight City</b><div class="sub">M83 · Hurry Up, We're Dreaming</div><div class="pill">◀　Ⅱ　▶</div><div class="sub">DEMO MEDIA SESSION</div>`,
+settings:()=>`<div class="hero">Settings</div><div class="list"><div class="item"><strong>Display</strong>Brightness · Always-on display</div><div class="item"><strong>Connectivity</strong>Bluetooth · Phone link</div><div class="item"><strong>Power</strong>Battery · Sleep schedule</div><div class="item"><strong>System</strong>About · Restart</div></div>`,
+about:()=>`<div class="hero">NothingOS Wear</div><div class="wordmark">CONCEPT 0.0.1</div><div class="sub">CMF Watch Pro 2 · D398</div><div class="pill">SIMULATOR BUILD</div>`,
+timer:()=>`<div class="hero">Timer</div><div class="time">05:00</div><div class="pill">START　 RESET</div><div class="sub">INTERACTION MOCKUP</div>`
+};
+function go(page){if(!pages[page])return;content.innerHTML=pages[page]();screenname.textContent=page.toUpperCase();content.querySelectorAll('[data-page]').forEach(el=>el.addEventListener('click',()=>go(el.dataset.page)));if(page==='home')tick();}
+function tick(){const c=document.getElementById('clock'),d=document.getElementById('date');if(c){c.textContent=new Intl.DateTimeFormat([], {hour:'2-digit',minute:'2-digit'}).format(new Date());d.textContent=new Intl.DateTimeFormat([], {weekday:'short',month:'short',day:'numeric'}).format(new Date()).toUpperCase();}}
+document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
+go('home');tick();setInterval(tick,15000);
+</script>
+</body>
+</html>
