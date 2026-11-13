@@ -7,8 +7,8 @@
 ## Current target baseline
 
 - Watch model: D398 (owner-confirmed)
-- Companion app model string: CMF Watch Pro 2-DB35 (recorded separately; exact meaning unknown)
 - Installed stock firmware: **1.0.0.73** (owner-confirmed)
+- The companion app's four-hex device-name suffix appears to match the tail of the Bluetooth address; it is not treated as a second model identifier.
 - Community-reported platform: Actions ATS3089C, Zephyr RTOS 2.7, LVGL.
 
 ## Vision
