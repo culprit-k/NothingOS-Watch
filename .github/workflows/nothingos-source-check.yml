@@ -1,0 +1,37 @@
+name: NothingOS Wear source checks
+
+on:
+  push:
+    paths:
+      - "firmware/app/**"
+      - ".github/workflows/nothingos-source-check.yml"
+  pull_request:
+    paths:
+      - "firmware/app/**"
+      - ".github/workflows/nothingos-source-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  portable-ui-state:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile portable UI state with strict warnings
+        run: |
+          gcc -std=c11 -Wall -Wextra -Werror -pedantic \
+            -Ifirmware/app/src \
+            firmware/app/src/ui_state.c \
+            firmware/app/tests/test_ui_state.c \
+            -o /tmp/nothingos-ui-state-test
+      - name: Run UI state tests
+        run: /tmp/nothingos-ui-state-test
+      - name: Check required app source files
+        run: |
+          test -s firmware/app/CMakeLists.txt
+          test -s firmware/app/prj.conf
+          test -s firmware/app/src/main.c
+          test -s firmware/app/src/app_msg.c
+          test -s firmware/app/src/ui_state.c
