@@ -28,6 +28,8 @@ jobs:
             -o /tmp/nothingos-ui-state-test
       - name: Run UI state tests
         run: /tmp/nothingos-ui-state-test
+      - name: Validate SDK assembly script syntax
+        run: bash -n firmware/app/scripts/assemble-actions-sdk.sh
       - name: Check required app source files
         run: |
           test -s firmware/app/CMakeLists.txt
