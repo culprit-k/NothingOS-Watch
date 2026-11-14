@@ -2,7 +2,7 @@
 
 **An original, Wear OS-inspired embedded operating system for the CMF Watch Pro 2 (D398).**
 
-> **Status: embedded UI source now exists, but there is no NothingOS Wear firmware image ready to install.** This project does not port Google's Wear OS or Android. The target is a custom embedded OS using the watch's MCU-class platform, an LVGL interface and a companion-phone connection.
+> **Status: original LVGL application source and portable service logic are in the repository, but there is no NothingOS Wear firmware image ready to install.** This project does not port Google's Wear OS or Android. The target is a custom embedded OS using the watch's MCU-class platform, an LVGL interface and a companion-phone connection.
 
 ## Owner's device baseline
 
@@ -36,10 +36,13 @@ The emulator is a community research tool, not an official CMF service.
 | Component | Status |
 |---|---|
 | Project architecture and roadmap | Documented |
-| Browser UI concept | Present in `simulator/index.html` |
-| Original Actions/Zephyr + LVGL application shell | Source added in `firmware/app/`; not yet compile-validated |
+| Browser UI concept | Present in simulator/index.html |
+| Original Actions/Zephyr + LVGL application shell | Source added; not yet compile-validated against the vendor SDK |
 | Home, Apps and System UI pages | Source implemented |
 | Crown/key page navigation | Source implemented; hardware input not yet validated on D398 |
+| Portable UI state module and tests | Implemented; CI host checks passed on prior revisions |
+| Two-mode music service contract and host tests | Implemented; backend is deliberately unbound |
+| Actions SDK audio examples | Audited; target-specific integration not done |
 | Companion phone, BLE, sensor and health integrations | Not implemented |
 | Exact stock 1.0.0.73 OTA acquired and inspected | Not yet |
 | Exact D398 board/bootloader/partition/signature profile | Not yet verified |
@@ -65,21 +68,22 @@ Before a physical installation, this project must:
 
 ## Repository guide
 
-- [Project roadmap](docs/PLAN.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [Music app specification](docs/MUSIC_APP_SPEC.md)
-- [D398 device profile](docs/DEVICE_PROFILE.md)
-- [Stock firmware baseline](docs/FIRMWARE_BASELINE.md)
-- [Installation readiness](docs/INSTALLATION_READINESS.md)
-- [D398 flash release gate](docs/FLASH_RELEASE_GATE.md)
-- [D398 public-research bring-up baseline](docs/D398_PUBLIC_RESEARCH_BASELINE.md)
-- [Actions SDK and audio research](docs/ACTIONS_SDK_RESEARCH.md)
-- [Machine-readable D398 target manifest](firmware/targets/d398/target.yaml)
-- [Phone-only development path](docs/PHONE_ONLY_PATH.md)
-- [Immediate installation audit](docs/D398_IMMEDIATE_INSTALL_AUDIT_2026-11-14.md)
-- [External research references](docs/EXTERNAL_RESEARCH.md)
-- `firmware/app/` — original embedded UI application source
-- `companion/android/` — planned Android companion
-- `simulator/` — browser UI concept
+- Project roadmap: docs/PLAN.md
+- Architecture: docs/ARCHITECTURE.md
+- Music app specification: docs/MUSIC_APP_SPEC.md
+- Music backend audit: docs/MUSIC_BACKEND_AUDIT.md
+- D398 device profile: docs/DEVICE_PROFILE.md
+- Stock firmware baseline: docs/FIRMWARE_BASELINE.md
+- Installation readiness: docs/INSTALLATION_READINESS.md
+- D398 flash release gate: docs/FLASH_RELEASE_GATE.md
+- D398 public-research bring-up baseline: docs/D398_PUBLIC_RESEARCH_BASELINE.md
+- Actions SDK and audio research: docs/ACTIONS_SDK_RESEARCH.md
+- Machine-readable D398 target manifest: firmware/targets/d398/target.yaml
+- Phone-only development path: docs/PHONE_ONLY_PATH.md
+- Immediate installation audit: docs/D398_IMMEDIATE_INSTALL_AUDIT_2026-11-14.md
+- External research references: docs/EXTERNAL_RESEARCH.md
+- firmware/app/: original embedded UI application source
+- companion/android/: planned Android companion
+- simulator/: browser UI concept
 
 This is an independent community project and is not affiliated with Nothing or CMF.
