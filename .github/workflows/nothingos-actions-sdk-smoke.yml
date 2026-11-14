@@ -1,0 +1,76 @@
+name: NothingOS Wear — Actions SDK compile smoke test
+
+on:
+  push:
+    paths:
+      - "firmware/app/**"
+      - ".github/workflows/nothingos-actions-sdk-smoke.yml"
+  pull_request:
+    paths:
+      - "firmware/app/**"
+      - ".github/workflows/nothingos-actions-sdk-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: actions-sdk-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  generic-development-board-compile:
+    name: ATS3089C generic development board — compile only
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Check out NothingOS Wear source
+        uses: actions/checkout@v4
+
+      - name: Install native build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            cmake ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi \
+            libstdc++-arm-none-eabi-newlib device-tree-compiler gperf \
+            libssl-dev libffi-dev python3-dev
+
+      - name: Set up Python for the Zephyr 2.7 SDK
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: "pip"
+
+      - name: Pin and assemble public Actions SDK source
+        run: |
+          bash firmware/app/scripts/assemble-actions-sdk.sh \
+            "$GITHUB_WORKSPACE/third_party/lv_port_actions_technology"
+
+      - name: Install Zephyr Python requirements
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r \
+            "$GITHUB_WORKSPACE/third_party/lv_port_actions_technology/action_technology_sdk/zephyr/scripts/requirements-base.txt"
+
+      - name: Configure GNU Arm toolchain
+        shell: bash
+        run: |
+          source firmware/app/scripts/arm-toolchain-shim.sh
+          {
+            echo "ZEPHYR_TOOLCHAIN_VARIANT=$ZEPHYR_TOOLCHAIN_VARIANT"
+            echo "GNUARMEMB_TOOLCHAIN_PATH=$GNUARMEMB_TOOLCHAIN_PATH"
+          } >> "$GITHUB_ENV"
+
+      - name: Compile NothingOS Wear against generic ATS3089C development board
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDK="$GITHUB_WORKSPACE/third_party/lv_port_actions_technology"
+          APP="$SDK/action_technology_sdk/application/app_demo/nothingos_wear"
+          BUILD="$APP/outdir/ats3089c_dev_watch"
+          cd "$SDK/action_technology_sdk/zephyr"
+          west build -p auto -b ats3089c_dev_watch -d "$BUILD" "$APP"
+          test -s "$BUILD/zephyr/zephyr.elf"
+          file "$BUILD/zephyr/zephyr.elf"
+          sha256sum "$BUILD/zephyr/zephyr.elf"
+          echo "::notice::Generic ATS3089C development-board compile only. This output is NOT CMF Watch Pro 2 D398 firmware and must not be flashed."
