@@ -1,10 +1,9 @@
 /*
  * NothingOS Wear — original embedded UI application layer.
  *
- * Target family: Actions ATS3089C / Zephyr / LVGL.
- * This source intentionally does not assume D398 pin numbers, panel reset
- * timing, touch-controller wiring, or partition layout. Those belong in the
- * separately verified JX402 board port and must be derived from stock 1.0.0.73.
+ * The code uses the public Actions ATS3089C development SDK API surface for
+ * source-level integration. That generic board is NOT verified as D398.
+ * Device drivers, display/touch wiring and BLE/audio backends remain gated.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -25,6 +24,7 @@
 
 #include "app_msg.h"
 #include "ui_state.h"
+#include "timer_service.h"
 
 #define C_BG       0x070707
 #define C_PANEL    0x171717
@@ -34,11 +34,21 @@
 #define C_ACCENT   0xD7FF3F
 #define C_RED      0xFF4D4D
 
+enum timer_action {
+    TIMER_ACTION_TOGGLE = 1,
+    TIMER_ACTION_RESET = 2
+};
+
 static K_SEM_DEFINE(g_vsync_sem, 0, 1);
 static nothingos_ui_state_t g_ui_state;
+static nothingos_timer_t g_timer;
 static lv_obj_t *g_uptime_label;
+static lv_obj_t *g_timer_readout;
+static lv_obj_t *g_timer_status;
+static lv_obj_t *g_timer_toggle_label;
 
 static void rebuild_page(void);
+static void refresh_timer_view(void);
 
 static void set_text_color(lv_obj_t *obj, uint32_t color)
 {
@@ -88,8 +98,8 @@ static void add_nav_button(lv_obj_t *parent, const char *text,
     lv_obj_center(label);
 }
 
-static void add_app_tile(lv_obj_t *parent, const char *name,
-                         const char *state)
+static lv_obj_t *add_app_tile(lv_obj_t *parent, const char *name,
+                              const char *state)
 {
     lv_obj_t *tile = lv_obj_create(parent);
     style_card(tile, C_PANEL);
@@ -100,6 +110,85 @@ static void add_app_tile(lv_obj_t *parent, const char *name,
 
     make_label(tile, name, C_WHITE, &lv_font_montserrat_14);
     make_label(tile, state, C_MUTED, NULL);
+    return tile;
+}
+
+static const char *timer_state_name(void)
+{
+    switch (g_timer.state) {
+    case NOTHINGOS_TIMER_RUNNING:
+        return "RUNNING";
+    case NOTHINGOS_TIMER_PAUSED:
+        return "PAUSED";
+    case NOTHINGOS_TIMER_FINISHED:
+        return "TIME UP";
+    case NOTHINGOS_TIMER_IDLE:
+    default:
+        return "READY";
+    }
+}
+
+static void refresh_timer_view(void)
+{
+    uint32_t remaining = nothingos_timer_remaining(&g_timer);
+    unsigned int minutes = (unsigned int)(remaining / 60000U);
+    unsigned int seconds = (unsigned int)((remaining / 1000U) % 60U);
+
+    if (g_timer_readout != NULL) {
+        lv_label_set_text_fmt(g_timer_readout, "%02u:%02u", minutes, seconds);
+    }
+    if (g_timer_status != NULL) {
+        lv_label_set_text(g_timer_status, timer_state_name());
+    }
+    if (g_timer_toggle_label != NULL) {
+        if (g_timer.state == NOTHINGOS_TIMER_RUNNING) {
+            lv_label_set_text(g_timer_toggle_label, "PAUSE");
+        } else if (g_timer.state == NOTHINGOS_TIMER_PAUSED) {
+            lv_label_set_text(g_timer_toggle_label, "RESUME");
+        } else if (g_timer.state == NOTHINGOS_TIMER_FINISHED) {
+            lv_label_set_text(g_timer_toggle_label, "FINISHED");
+        } else {
+            lv_label_set_text(g_timer_toggle_label, "START");
+        }
+    }
+}
+
+static void timer_action_cb(lv_event_t *event)
+{
+    uintptr_t action = (uintptr_t)lv_event_get_user_data(event);
+    uint32_t now_ms = k_uptime_get_32();
+
+    if (action == TIMER_ACTION_RESET) {
+        nothingos_timer_reset(&g_timer);
+    } else if (action == TIMER_ACTION_TOGGLE) {
+        if (g_timer.state == NOTHINGOS_TIMER_RUNNING) {
+            (void)nothingos_timer_pause(&g_timer, now_ms);
+        } else if (g_timer.state == NOTHINGOS_TIMER_IDLE ||
+                   g_timer.state == NOTHINGOS_TIMER_PAUSED) {
+            (void)nothingos_timer_start(&g_timer, now_ms);
+        }
+    }
+    refresh_timer_view();
+}
+
+static lv_obj_t *add_timer_action_button(lv_obj_t *parent,
+                                         const char *text,
+                                         enum timer_action action)
+{
+    lv_obj_t *btn = lv_button_create(parent);
+    style_card(btn, C_PANEL_2);
+    lv_obj_set_size(btn, 126, 46);
+    lv_obj_add_event_cb(btn, timer_action_cb, LV_EVENT_CLICKED,
+                        (void *)(uintptr_t)action);
+    return make_label(btn, text, C_WHITE, &lv_font_montserrat_14);
+}
+
+static void timer_tile_cb(lv_event_t *event)
+{
+    ARG_UNUSED(event);
+    if (nothingos_ui_state_select(&g_ui_state, NOTHINGOS_PAGE_TIMER)) {
+        rebuild_page();
+    }
 }
 
 static void build_home(lv_obj_t *screen)
@@ -149,10 +238,53 @@ static void build_apps(lv_obj_t *screen)
     lv_obj_set_flex_align(grid, LV_FLEX_ALIGN_CENTER,
                           LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
-    add_app_tile(grid, "Timer", "Not integrated yet");
-    add_app_tile(grid, "Media", "Phone link pending");
-    add_app_tile(grid, "Health", "No sensor data");
-    add_app_tile(grid, "Activity", "No sensor data");
+    lv_obj_t *timer_tile = add_app_tile(grid, "Timer", "5-minute countdown");
+    lv_obj_add_flag(timer_tile, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_add_event_cb(timer_tile, timer_tile_cb, LV_EVENT_CLICKED, NULL);
+
+    (void)add_app_tile(grid, "Media", "Backend unavailable");
+    (void)add_app_tile(grid, "Health", "No sensor data");
+    (void)add_app_tile(grid, "Activity", "No sensor data");
+}
+
+static void build_timer(lv_obj_t *screen)
+{
+    lv_obj_t *title = make_label(screen, "TIMER", C_WHITE,
+                                 &lv_font_montserrat_24);
+    lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 34);
+
+    lv_obj_t *panel = lv_obj_create(screen);
+    style_card(panel, C_PANEL);
+    lv_obj_set_size(panel, 310, 184);
+    lv_obj_align(panel, LV_ALIGN_CENTER, 0, -4);
+
+    g_timer_readout = make_label(panel, "05:00", C_WHITE,
+                                 &lv_font_montserrat_48);
+    lv_obj_align(g_timer_readout, LV_ALIGN_CENTER, 0, -18);
+
+    g_timer_status = make_label(panel, "READY", C_ACCENT,
+                                &lv_font_montserrat_14);
+    lv_obj_align(g_timer_status, LV_ALIGN_CENTER, 0, 38);
+
+    lv_obj_t *controls = lv_obj_create(screen);
+    lv_obj_set_size(controls, 286, 54);
+    lv_obj_align(controls, LV_ALIGN_BOTTOM_MID, 0, -54);
+    lv_obj_set_style_bg_opa(controls, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_border_width(controls, 0, 0);
+    lv_obj_set_style_pad_all(controls, 0, 0);
+    lv_obj_set_layout(controls, LV_LAYOUT_FLEX);
+    lv_obj_set_flex_flow(controls, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(controls, LV_FLEX_ALIGN_SPACE_EVENLY,
+                          LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+
+    g_timer_toggle_label = add_timer_action_button(
+        controls, "START", TIMER_ACTION_TOGGLE);
+    lv_obj_center(g_timer_toggle_label);
+    lv_obj_t *reset_label = add_timer_action_button(
+        controls, "RESET", TIMER_ACTION_RESET);
+    lv_obj_center(reset_label);
+
+    refresh_timer_view();
 }
 
 static void build_settings(lv_obj_t *screen)
@@ -184,6 +316,9 @@ static void rebuild_page(void)
     lv_obj_set_style_bg_color(screen, lv_color_hex(C_BG), 0);
     lv_obj_set_style_bg_opa(screen, LV_OPA_COVER, 0);
     g_uptime_label = NULL;
+    g_timer_readout = NULL;
+    g_timer_status = NULL;
+    g_timer_toggle_label = NULL;
 
     switch (g_ui_state.page) {
     case NOTHINGOS_PAGE_HOME:
@@ -194,6 +329,9 @@ static void rebuild_page(void)
         break;
     case NOTHINGOS_PAGE_SYSTEM:
         build_settings(screen);
+        break;
+    case NOTHINGOS_PAGE_TIMER:
+        build_timer(screen);
         break;
     default:
         nothingos_ui_state_select(&g_ui_state, NOTHINGOS_PAGE_HOME);
@@ -269,12 +407,17 @@ static void uptime_tick(struct thread_timer *timer, void *data)
 {
     ARG_UNUSED(timer);
     ARG_UNUSED(data);
+
     nothingos_ui_state_set_uptime(&g_ui_state, k_uptime_get_32() / 1000U);
+    nothingos_timer_update(&g_timer, k_uptime_get_32());
 
     if (g_ui_state.page == NOTHINGOS_PAGE_HOME && g_uptime_label) {
         lv_label_set_text_fmt(g_uptime_label, "SYSTEM UPTIME  %02u:%02u",
             (unsigned int)(g_ui_state.uptime_seconds / 60U),
             (unsigned int)(g_ui_state.uptime_seconds % 60U));
+    }
+    if (g_ui_state.page == NOTHINGOS_PAGE_TIMER) {
+        refresh_timer_view();
     }
 }
 
@@ -302,6 +445,8 @@ int main(void)
     static struct thread_timer uptime_timer;
 
     nothingos_ui_state_init(&g_ui_state);
+    nothingos_timer_init(&g_timer, 5U * 60U * 1000U);
+
     mem_manager_init();
     system_init();
     app_msg_init();
