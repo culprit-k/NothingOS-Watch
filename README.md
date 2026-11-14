@@ -1,56 +1,76 @@
 # NothingOS Wear
 
-**Wear OS-inspired custom firmware and Android companion ecosystem for CMF Watch Pro 2 (D398).**
+**An original, Wear OS-inspired embedded operating system for the CMF Watch Pro 2 (D398).**
 
-> **Status: research and bring-up. Not an installable firmware release.** This project does not port Google's Wear OS or Android to the watch. The target is a custom embedded operating environment based on the watch's MCU-class hardware, with a Wear OS-inspired UI and Android-phone companion integration.
+> **Status: research and bring-up. There is no NothingOS Wear firmware image ready to install.** This project does not port Google's Wear OS or Android. The target is a custom embedded OS using the watch's MCU-class platform, with an LVGL interface and a companion-phone connection.
 
-## Current target baseline
+## Owner's device baseline
 
-- Watch model: D398 (owner-confirmed)
-- Installed stock firmware: **1.0.0.73** (owner-confirmed)
-- The companion app's four-hex device-name suffix appears to match the tail of the Bluetooth address; it is not treated as a second model identifier.
-- Community-reported platform: Actions ATS3089C, Zephyr RTOS 2.7, LVGL.
+- Model: **CMF Watch Pro 2, D398**
+- Installed stock firmware: **1.0.0.73**
+- Owner's everyday phone: iPhone
+- Development environment: GitHub Codespaces
+- A temporary Android phone may be available for later BLE/OTA experiments.
 
-## Vision
+## Try the interface safely — no coding or installation
 
-Circular launcher, cards, notifications, quick settings, settings, native embedded apps, BLE connection to Android companion, phone-relayed notifications/media, and verified health/sensor views.
+1. Open the [Watch Pro 2 web emulator](https://cmf.arnv.dev/emulator/watch-pro-2/).
+2. Choose the available demo firmware or UI simulation.
+3. Explore the round-screen interface and sensor simulation.
+4. This runs in the browser; it does not change the physical watch.
 
-## Reality check
+The emulator is a community research tool, not an official CMF service.
 
-| Goal | Feasibility |
+## What NothingOS Wear aims to include
+
+- Round launcher and app grid
+- Quick settings and notification centre
+- Health/activity summaries with clear sensor-data provenance
+- Media controls
+- Settings, display and haptics controls
+- BLE companion integration
+- Original visual language inspired by Nothing's minimal design
+
+## Current engineering status
+
+| Component | Status |
 |---|---|
-| Wear OS-inspired interface | Project goal |
-| Custom Zephyr/LVGL firmware | Research path; exact D398 board port required |
-| Android companion over BLE | Project goal; protocol implementation required |
-| Phone-relayed notifications/media | Conditional on Android permissions and verified protocol |
-| Install APKs directly on the watch | Not supported by this MCU/Zephyr architecture |
-| Actual Google Wear OS / Play Services | Not a realistic port target for this hardware |
+| Project architecture and roadmap | Documented |
+| Browser UI concept | Present in `simulator/index.html` |
+| Community Watch Pro 2 emulator identified | Available for safe evaluation |
+| Exact stock 1.0.0.73 OTA acquired and inspected | Not yet |
+| Exact D398 board/bootloader/partition/signature profile | Not yet verified |
+| Reproducible Actions Zephyr SDK build | Not yet established |
+| D398-specific NothingOS Wear board port | Not built |
+| NothingOS Wear OTA package | Does not exist yet |
+| Physical installation and recovery test | Not performed |
 
-## Current implementation
+## Why the watch has not been flashed
 
-- Project architecture and phased roadmap.
-- Browser UI concept simulator in `simulator/index.html`.
-- Device baseline and explicit installation safety gates.
+An experimental public firmware exists for the Watch Pro 2, but it is a demonstration application, not NothingOS Wear. Its release notes report emulator/QEMU validation and explicitly do not claim a physical-watch flash test. A wrong image can leave the watch unbootable and may require internal SWD hardware recovery.
 
-**NothingOS Wear is not currently installable on the physical watch.** Do not flash experimental images.
+Before a physical installation, this project must:
+1. Inspect the exact official stock OTA for firmware 1.0.0.73.
+2. Confirm board identity, hardware revision, partition layout, update gates and secure-boot/signature policy.
+3. Build the original NothingOS Wear application for the matching hardware.
+4. Verify package structure and checksums independently.
+5. Demonstrate rollback/recovery on a donor D398 of the same hardware revision.
+6. Test boot, display, touch, crown, BLE, charging, sensors and sleep/wake.
 
-## Repository map
+**Do not install third-party demo firmware on the owner's only watch.** Android provides a possible BLE transfer route, not a compatibility guarantee or recovery mechanism.
 
-- `docs/PLAN.md` — phased roadmap
-- `docs/ARCHITECTURE.md` — system architecture
-- `docs/SAFETY.md` — safety policy
-- `docs/DEVICE_PROFILE.md` — D398 profile
-- `docs/FIRMWARE_BASELINE.md` — firmware 1.0.0.73 baseline
-- `docs/INSTALLATION_READINESS.md` — pre-installation gates
-- `docs/EXTERNAL_RESEARCH.md` — upstream research and reuse policy
-- `firmware/` — future Zephyr/LVGL firmware
+## Repository guide
+
+- [Project roadmap](docs/PLAN.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [D398 device profile](docs/DEVICE_PROFILE.md)
+- [Stock firmware baseline](docs/FIRMWARE_BASELINE.md)
+- [Installation readiness](docs/INSTALLATION_READINESS.md)
+- [Phone-only development path](docs/PHONE_ONLY_PATH.md)
+- [Immediate installation audit](docs/D398_IMMEDIATE_INSTALL_AUDIT_2026-11-14.md)
+- [External research references](docs/EXTERNAL_RESEARCH.md)
+- `firmware/` — future embedded firmware source
 - `companion/android/` — future Android companion
-- `simulator/` — UI simulator
+- `simulator/` — browser UI concept
 
-## Research starting points
-
-See [docs/EXTERNAL_RESEARCH.md](docs/EXTERNAL_RESEARCH.md) for relevant Watch Pro 2 firmware, BLE, simulator, and companion-app projects. Review licenses and exact model/firmware coverage before reusing code.
-
-## Safety
-
-A failed firmware update may require internal SWD hardware recovery. See [docs/SAFETY.md](docs/SAFETY.md) and [docs/INSTALLATION_READINESS.md](docs/INSTALLATION_READINESS.md). This project is unofficial and not affiliated with Nothing or CMF.
+This is an independent community project and is not affiliated with Nothing or CMF.
