@@ -26,7 +26,7 @@ The emulator is a community research tool, not an official CMF service.
 - Round launcher and app grid
 - Quick settings and notification centre
 - Health/activity summaries with clear sensor-data provenance
-- Media controls
+- Music app with separate phone-control and on-watch local-playback modes
 - Settings, display and haptics controls
 - BLE companion integration
 - Original visual language inspired by Nothing's minimal design
@@ -67,7 +67,7 @@ Before a physical installation, this project must:
 
 - [Project roadmap](docs/PLAN.md)
 - [Architecture](docs/ARCHITECTURE.md)
-- [YouTube Remote feature specification](docs/YOUTUBE_REMOTE_SPEC.md)
+- [Music app specification](docs/MUSIC_APP_SPEC.md)
 - [D398 device profile](docs/DEVICE_PROFILE.md)
 - [Stock firmware baseline](docs/FIRMWARE_BASELINE.md)
 - [Installation readiness](docs/INSTALLATION_READINESS.md)
