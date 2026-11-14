@@ -2,34 +2,70 @@ target:
   product: "CMF Watch Pro 2"
   model: "D398"
   reported_firmware: "1.0.0.73"
-  status: "research-only"
+  status: "community-reconstructed-hardware-candidate"
   flash_authorized: false
 
 platform_candidate:
   soc: "ATS3089C"
   board_id: "jx402_01_3089c"
-  confidence: "unverified-public-research-lead"
+  confidence: "corroborated-community-research; exact hardware revision unverified"
   may_be_used_for_flash: false
 
 hardware:
-  display: { status: "unknown" }
-  touch: { status: "unknown" }
-  crown: { status: "unknown" }
-  pmic: { status: "unknown" }
-  sensors: { status: "unknown" }
-  audio_output: { status: "unknown" }
-  local_storage: { status: "unknown" }
+  display:
+    candidate_controller: "CO5300 / JX07003"
+    candidate_resolution: "466x466"
+    source_status: "community reverse-engineering from stock driver/register evidence"
+    physical_validation_on_owner_unit: false
+  touch:
+    candidate_controller: "CST820"
+    candidate_bus: "I2C_0"
+    candidate_address_7bit: "0x15"
+    candidate_pins:
+      scl: "GPIOA.24"
+      sda: "GPIOA.25"
+      power: "GPIOA.5"
+      reset: "GPIOA.26"
+      irq: "GPIOA.27"
+    physical_validation_on_owner_unit: false
+  crown:
+    candidate_controller: "MT3511"
+    candidate_bus: "I2C_2"
+    candidate_address_7bit: "0x75"
+    candidate_irq: "GPIOB.26"
+    physical_validation_on_owner_unit: false
+  heart_rate:
+    candidate_sensor: "VC9202"
+    evidence: "community Pro 2 board overlay selects VC9202 instead of HX3605"
+    physical_validation_on_owner_unit: false
+  battery_and_charging:
+    candidate_design: "internal PMU charger with BATV ADC and reconstructed NTC/charge profile"
+    physical_validation_on_owner_unit: false
+  audio_output:
+    candidate_route: "DAC/PMUDAC with external amplifier enable"
+    candidate_amplifier_control: "GPIOA.21"
+    playback_verified_by_source_project: false
+    physical_validation_on_owner_unit: false
+  memory:
+    candidate_psram: "8 MiB"
+    source_status: "community board overlay"
+    physical_validation_on_owner_unit: false
+  local_storage:
+    status: "unknown"
+    writable_music_partition_verified: false
 
 boot_chain:
-  partition_map: "unknown"
-  bootloader_constraints: "unknown"
-  image_format: "unknown"
-  signature_policy: "unknown"
-  recovery_method: "unverified"
+  partition_map: "unknown for owner unit"
+  bootloader_constraints: "not independently verified"
+  image_format: "AOTA container is reported by community reverse-engineering; owner-unit compatibility not verified"
+  signature_policy: "unknown for owner unit"
+  recovery_method: "not independently verified on owner unit"
 
 release_gates:
   exact_board_revision_verified: false
+  exact_1_0_0_73_stock_image_hash_matched_to_owner_unit: false
   full_device_sdk_build_passed: false
+  d398_board_port_build_passed: false
   peripheral_drivers_verified: false
   package_structure_verified: false
   integrity_checks_passed: false
@@ -37,7 +73,7 @@ release_gates:
   sacrificial_device_test_passed: false
 
 policy:
-  - "Never infer D398 hardware details from another CMF model."
+  - "Treat all community board values as candidate values until matched to the owner's exact hardware revision."
   - "Never treat a generic ATS3089C development-board image as D398 firmware."
   - "Never produce a flashable release while any release gate is false."
   - "Unsupported app features must report unavailable; do not fake successful operation."
