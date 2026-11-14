@@ -45,7 +45,8 @@ static enum os_page g_page = PAGE_HOME;
 static uint8_t g_display_active = 1;
 static uint32_t g_uptime_seconds;
 static lv_obj_t *g_uptime_label;
-static lv_obj_t *g_page_title;
+
+static void rebuild_page(void);
 
 static void set_text_color(lv_obj_t *obj, uint32_t color)
 {
@@ -80,9 +81,9 @@ static void page_next(void)
 
 static void page_button_cb(lv_event_t *event)
 {
-    uintptr_t next = (uintptr_t)lv_event_get_user_data(event);
-    g_page = (enum os_page)(next % PAGE_COUNT);
-    app_msg_send(APP_NAME, MSG_UI, CMD_PAGE_NEXT);
+    uintptr_t selected_page = (uintptr_t)lv_event_get_user_data(event);
+    g_page = (enum os_page)(selected_page % PAGE_COUNT);
+    rebuild_page();
 }
 
 static void add_nav_button(lv_obj_t *parent, const char *text,
@@ -144,8 +145,9 @@ static void build_home(lv_obj_t *screen)
 
 static void build_apps(lv_obj_t *screen)
 {
-    make_label(screen, "APPS", C_WHITE, &lv_font_montserrat_24);
-    lv_obj_align(lv_obj_get_child(screen, 0), LV_ALIGN_TOP_MID, 0, 28);
+    lv_obj_t *title = make_label(screen, "APPS", C_WHITE,
+                                 &lv_font_montserrat_24);
+    lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 28);
 
     lv_obj_t *grid = lv_obj_create(screen);
     lv_obj_set_size(grid, 350, 230);
@@ -192,6 +194,7 @@ static void rebuild_page(void)
     lv_obj_clean(screen);
     lv_obj_set_style_bg_color(screen, lv_color_hex(C_BG), 0);
     lv_obj_set_style_bg_opa(screen, LV_OPA_COVER, 0);
+    g_uptime_label = NULL;
 
     switch (g_page) {
     case PAGE_HOME:
