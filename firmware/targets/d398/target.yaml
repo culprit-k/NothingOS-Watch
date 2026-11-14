@@ -1,0 +1,43 @@
+target:
+  product: "CMF Watch Pro 2"
+  model: "D398"
+  reported_firmware: "1.0.0.73"
+  status: "research-only"
+  flash_authorized: false
+
+platform_candidate:
+  soc: "ATS3089C"
+  board_id: "jx402_01_3089c"
+  confidence: "unverified-public-research-lead"
+  may_be_used_for_flash: false
+
+hardware:
+  display: { status: "unknown" }
+  touch: { status: "unknown" }
+  crown: { status: "unknown" }
+  pmic: { status: "unknown" }
+  sensors: { status: "unknown" }
+  audio_output: { status: "unknown" }
+  local_storage: { status: "unknown" }
+
+boot_chain:
+  partition_map: "unknown"
+  bootloader_constraints: "unknown"
+  image_format: "unknown"
+  signature_policy: "unknown"
+  recovery_method: "unverified"
+
+release_gates:
+  exact_board_revision_verified: false
+  full_device_sdk_build_passed: false
+  peripheral_drivers_verified: false
+  package_structure_verified: false
+  integrity_checks_passed: false
+  recovery_test_passed: false
+  sacrificial_device_test_passed: false
+
+policy:
+  - "Never infer D398 hardware details from another CMF model."
+  - "Never treat a generic ATS3089C development-board image as D398 firmware."
+  - "Never produce a flashable release while any release gate is false."
+  - "Unsupported app features must report unavailable; do not fake successful operation."
