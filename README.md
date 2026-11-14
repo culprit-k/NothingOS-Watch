@@ -73,6 +73,7 @@ Before a physical installation, this project must:
 - [Installation readiness](docs/INSTALLATION_READINESS.md)
 - [D398 flash release gate](docs/FLASH_RELEASE_GATE.md)
 - [D398 public-research bring-up baseline](docs/D398_PUBLIC_RESEARCH_BASELINE.md)
+- [Actions SDK and audio research](docs/ACTIONS_SDK_RESEARCH.md)
 - [Machine-readable D398 target manifest](firmware/targets/d398/target.yaml)
 - [Phone-only development path](docs/PHONE_ONLY_PATH.md)
 - [Immediate installation audit](docs/D398_IMMEDIATE_INSTALL_AUDIT_2026-11-14.md)
