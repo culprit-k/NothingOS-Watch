@@ -67,6 +67,7 @@ Before a physical installation, this project must:
 
 - [Project roadmap](docs/PLAN.md)
 - [Architecture](docs/ARCHITECTURE.md)
+- [YouTube Remote feature specification](docs/YOUTUBE_REMOTE_SPEC.md)
 - [D398 device profile](docs/DEVICE_PROFILE.md)
 - [Stock firmware baseline](docs/FIRMWARE_BASELINE.md)
 - [Installation readiness](docs/INSTALLATION_READINESS.md)
