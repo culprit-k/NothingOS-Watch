@@ -38,6 +38,7 @@ cp -R "$TEMPLATE" "$APP_DIR"
 cp "$HERE/src/main.c" "$HERE/src/app_msg.h" "$HERE/src/app_msg.c" \
    "$HERE/src/ui_state.h" "$HERE/src/ui_state.c" \
    "$HERE/src/music_service.h" "$HERE/src/music_service.c" \
+   "$HERE/src/timer_service.h" "$HERE/src/timer_service.c" \
    "$APP_DIR/src/"
 
 # Replace the template source list explicitly so no file is duplicated.
@@ -49,6 +50,7 @@ target_sources(app PRIVATE
     app_msg.c
     ui_state.c
     music_service.c
+    timer_service.c
 )
 EOF
 
