@@ -51,7 +51,7 @@ firmware/app/src/music_service.{h,c} provides a portable, testable contract for 
 - requires an explicit backend binding before a command can run;
 - requires the backend to report a connected/ready state before controls are accepted;
 - does not claim that play/pause changed playback until a real backend event updates the state;
-- validates the 0–15 vendor-demo volume range when setting volume.
+- uses a 0–100 abstract volume percentage that a vendor backend must translate to its native range.
 
 There is intentionally no physical audio backend bound yet. The module is an integration boundary, not a player implementation.
 
