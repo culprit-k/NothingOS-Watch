@@ -24,6 +24,7 @@
 #include <sys_wakelock.h>
 
 #include "app_msg.h"
+#include "ui_state.h"
 
 #define C_BG       0x070707
 #define C_PANEL    0x171717
@@ -33,17 +34,8 @@
 #define C_ACCENT   0xD7FF3F
 #define C_RED      0xFF4D4D
 
-enum os_page {
-    PAGE_HOME = 0,
-    PAGE_APPS,
-    PAGE_SETTINGS,
-    PAGE_COUNT
-};
-
 static K_SEM_DEFINE(g_vsync_sem, 0, 1);
-static enum os_page g_page = PAGE_HOME;
-static uint8_t g_display_active = 1;
-static uint32_t g_uptime_seconds;
+static nothingos_ui_state_t g_ui_state;
 static lv_obj_t *g_uptime_label;
 
 static void rebuild_page(void);
@@ -74,20 +66,17 @@ static void style_card(lv_obj_t *obj, uint32_t color)
     lv_obj_set_style_pad_all(obj, 12, 0);
 }
 
-static void page_next(void)
-{
-    g_page = (enum os_page)((g_page + 1) % PAGE_COUNT);
-}
-
 static void page_button_cb(lv_event_t *event)
 {
     uintptr_t selected_page = (uintptr_t)lv_event_get_user_data(event);
-    g_page = (enum os_page)(selected_page % PAGE_COUNT);
-    rebuild_page();
+    if (nothingos_ui_state_select(&g_ui_state,
+            (nothingos_page_t)selected_page)) {
+        rebuild_page();
+    }
 }
 
 static void add_nav_button(lv_obj_t *parent, const char *text,
-                           enum os_page page)
+                           nothingos_page_t page)
 {
     lv_obj_t *btn = lv_button_create(parent);
     style_card(btn, C_PANEL_2);
@@ -197,17 +186,17 @@ static void rebuild_page(void)
     g_uptime_label = NULL;
 
     switch (g_page) {
-    case PAGE_HOME:
+    case NOTHINGOS_PAGE_HOME:
         build_home(screen);
         break;
-    case PAGE_APPS:
+    case NOTHINGOS_PAGE_APPS:
         build_apps(screen);
         break;
-    case PAGE_SETTINGS:
+    case NOTHINGOS_PAGE_SYSTEM:
         build_settings(screen);
         break;
     default:
-        g_page = PAGE_HOME;
+        nothingos_ui_state_select(&g_ui_state, NOTHINGOS_PAGE_HOME);
         build_home(screen);
         break;
     }
@@ -222,9 +211,9 @@ static void rebuild_page(void)
     lv_obj_set_flex_flow(nav, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(nav, LV_FLEX_ALIGN_SPACE_EVENLY,
                           LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-    add_nav_button(nav, "HOME", PAGE_HOME);
-    add_nav_button(nav, "APPS", PAGE_APPS);
-    add_nav_button(nav, "SYSTEM", PAGE_SETTINGS);
+    add_nav_button(nav, "HOME", NOTHINGOS_PAGE_HOME);
+    add_nav_button(nav, "APPS", NOTHINGOS_PAGE_APPS);
+    add_nav_button(nav, "SYSTEM", NOTHINGOS_PAGE_SYSTEM);
 }
 
 static void display_vsync_cb(const lvx_display_observer_t *observer,
@@ -280,12 +269,12 @@ static void uptime_tick(struct thread_timer *timer, void *data)
 {
     ARG_UNUSED(timer);
     ARG_UNUSED(data);
-    g_uptime_seconds = k_uptime_get_32() / 1000U;
+    nothingos_ui_state_set_uptime(&g_ui_state, k_uptime_get_32() / 1000U);
 
-    if (g_page == PAGE_HOME && g_uptime_label) {
+    if (g_ui_state.page == NOTHINGOS_PAGE_HOME && g_uptime_label) {
         lv_label_set_text_fmt(g_uptime_label, "SYSTEM UPTIME  %02u:%02u",
-            (unsigned int)(g_uptime_seconds / 60U),
-            (unsigned int)(g_uptime_seconds % 60U));
+            (unsigned int)(g_ui_state.uptime_seconds / 60U),
+            (unsigned int)(g_ui_state.uptime_seconds % 60U));
     }
 }
 
@@ -293,14 +282,14 @@ static void process_ui_message(struct app_msg *msg)
 {
     switch (msg->cmd) {
     case CMD_SCREEN_OFF:
-        g_display_active = 0;
+        nothingos_ui_state_set_display(&g_ui_state, false);
         break;
     case CMD_SCREEN_ON:
-        g_display_active = 1;
+        nothingos_ui_state_set_display(&g_ui_state, true);
         lv_obj_invalidate(lv_screen_active());
         break;
     case CMD_PAGE_NEXT:
-        page_next();
+        nothingos_ui_state_next(&g_ui_state);
         rebuild_page();
         break;
     default:
@@ -312,6 +301,7 @@ int main(void)
 {
     static struct thread_timer uptime_timer;
 
+    nothingos_ui_state_init(&g_ui_state);
     mem_manager_init();
     system_init();
     app_msg_init();
@@ -340,7 +330,7 @@ int main(void)
             if (msg.callback) {
                 msg.callback(&msg, 0, NULL);
             }
-        } else if (rc == OS_POLL_SEM && g_display_active) {
+        } else if (rc == OS_POLL_SEM && g_ui_state.display_active) {
             lvx_refr_all();
         }
         thread_timer_handle_expired();
