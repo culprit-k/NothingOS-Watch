@@ -259,7 +259,7 @@ static void build_timer(lv_obj_t *screen)
     lv_obj_align(panel, LV_ALIGN_CENTER, 0, -4);
 
     g_timer_readout = make_label(panel, "05:00", C_WHITE,
-                                 &lv_font_montserrat_48);
+                                 &lv_font_montserrat_24);
     lv_obj_align(g_timer_readout, LV_ALIGN_CENTER, 0, -18);
 
     g_timer_status = make_label(panel, "READY", C_ACCENT,
