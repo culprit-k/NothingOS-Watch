@@ -71,6 +71,7 @@ Before a physical installation, this project must:
 - [D398 device profile](docs/DEVICE_PROFILE.md)
 - [Stock firmware baseline](docs/FIRMWARE_BASELINE.md)
 - [Installation readiness](docs/INSTALLATION_READINESS.md)
+- [D398 flash release gate](docs/FLASH_RELEASE_GATE.md)
 - [Phone-only development path](docs/PHONE_ONLY_PATH.md)
 - [Immediate installation audit](docs/D398_IMMEDIATE_INSTALL_AUDIT_2026-11-14.md)
 - [External research references](docs/EXTERNAL_RESEARCH.md)
