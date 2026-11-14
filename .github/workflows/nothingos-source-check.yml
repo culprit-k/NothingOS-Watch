@@ -15,7 +15,7 @@ permissions:
   contents: read
 
 jobs:
-  portable-ui-state:
+  portable-source-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -28,6 +28,15 @@ jobs:
             -o /tmp/nothingos-ui-state-test
       - name: Run UI state tests
         run: /tmp/nothingos-ui-state-test
+      - name: Compile portable music service with strict warnings
+        run: |
+          gcc -std=c11 -Wall -Wextra -Werror -pedantic \
+            -Ifirmware/app/src \
+            firmware/app/src/music_service.c \
+            firmware/app/tests/test_music_service.c \
+            -o /tmp/nothingos-music-service-test
+      - name: Run music service tests
+        run: /tmp/nothingos-music-service-test
       - name: Validate SDK assembly script syntax
         run: bash -n firmware/app/scripts/assemble-actions-sdk.sh
       - name: Check required app source files
@@ -37,3 +46,5 @@ jobs:
           test -s firmware/app/src/main.c
           test -s firmware/app/src/app_msg.c
           test -s firmware/app/src/ui_state.c
+          test -s firmware/app/src/music_service.c
+          test -s firmware/app/tests/test_music_service.c
