@@ -11,13 +11,13 @@
 #define NOTHINGOS_MUSIC_SERVICE_H
 #include <stdbool.h>
 #include <stdint.h>
+#define NOTHINGOS_MUSIC_VOLUME_MAX 100U
 
 typedef enum {
     NOTHINGOS_MUSIC_PHONE = 0,
     NOTHINGOS_MUSIC_LOCAL = 1,
     NOTHINGOS_MUSIC_MODE_COUNT = 2
 } nothingos_music_mode_t;
-
 typedef enum {
     NOTHINGOS_MUSIC_UNAVAILABLE = 0,
     NOTHINGOS_MUSIC_DISCONNECTED,
@@ -26,34 +26,29 @@ typedef enum {
     NOTHINGOS_MUSIC_PAUSED,
     NOTHINGOS_MUSIC_ERROR
 } nothingos_music_state_t;
-
 typedef enum {
     NOTHINGOS_MUSIC_PLAY_PAUSE = 0,
     NOTHINGOS_MUSIC_NEXT,
     NOTHINGOS_MUSIC_PREVIOUS,
     NOTHINGOS_MUSIC_SET_VOLUME
 } nothingos_music_command_t;
-
 enum {
     NOTHINGOS_MUSIC_OK = 0,
     NOTHINGOS_MUSIC_EINVAL = -1,
     NOTHINGOS_MUSIC_ENOTSUP = -2,
     NOTHINGOS_MUSIC_ENOTREADY = -3
 };
-
 typedef int (*nothingos_music_command_fn)(
     nothingos_music_command_t command, uint8_t value, void *context);
-
 typedef struct {
     nothingos_music_command_fn command;
     void *context;
 } nothingos_music_backend_t;
-
 typedef struct {
     nothingos_music_backend_t backend[NOTHINGOS_MUSIC_MODE_COUNT];
     nothingos_music_state_t state[NOTHINGOS_MUSIC_MODE_COUNT];
     nothingos_music_mode_t selected_mode;
-    uint8_t volume;
+    uint8_t volume_percent;
 } nothingos_music_service_t;
 
 void nothingos_music_init(nothingos_music_service_t *service);
