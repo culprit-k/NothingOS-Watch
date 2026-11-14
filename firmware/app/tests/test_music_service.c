@@ -72,21 +72,21 @@ static void test_volume_validation_and_backend_result(void)
     assert(nothingos_music_bind(&service, NOTHINGOS_MUSIC_PHONE, &backend));
     assert(nothingos_music_set_state(&service, NOTHINGOS_MUSIC_PHONE,
                                      NOTHINGOS_MUSIC_READY));
-    assert(nothingos_music_command(&service, NOTHINGOS_MUSIC_SET_VOLUME, 16U) ==
+    assert(nothingos_music_command(&service, NOTHINGOS_MUSIC_SET_VOLUME, 101U) ==
            NOTHINGOS_MUSIC_EINVAL);
     assert(phone.calls == 0U);
 
     phone.result = -77;
-    assert(nothingos_music_command(&service, NOTHINGOS_MUSIC_SET_VOLUME, 7U) ==
+    assert(nothingos_music_command(&service, NOTHINGOS_MUSIC_SET_VOLUME, 70U) ==
            -77);
-    assert(service.volume == 0U);
+    assert(service.volume_percent == 0U);
 
     phone.result = NOTHINGOS_MUSIC_OK;
-    assert(nothingos_music_command(&service, NOTHINGOS_MUSIC_SET_VOLUME, 7U) ==
+    assert(nothingos_music_command(&service, NOTHINGOS_MUSIC_SET_VOLUME, 70U) ==
            NOTHINGOS_MUSIC_OK);
-    assert(service.volume == 7U);
+    assert(service.volume_percent == 70U);
     assert(phone.last_command == NOTHINGOS_MUSIC_SET_VOLUME);
-    assert(phone.last_value == 7U);
+    assert(phone.last_value == 70U);
 }
 
 static void test_playback_state_requires_backend_event(void)
