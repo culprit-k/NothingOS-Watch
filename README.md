@@ -26,6 +26,7 @@ The emulator is a community research tool, not an official CMF service.
 - Round launcher and app grid
 - Quick settings and notification centre
 - Health/activity summaries with clear sensor-data provenance
+- A working native countdown timer
 - Music app with separate phone-control and on-watch local-playback modes
 - Settings, display and haptics controls
 - BLE companion integration
@@ -40,7 +41,8 @@ The emulator is a community research tool, not an official CMF service.
 | Original Actions/Zephyr + LVGL application shell | Source added; not yet compile-validated against the vendor SDK |
 | Home, Apps and System UI pages | Source implemented |
 | Crown/key page navigation | Source implemented; hardware input not yet validated on D398 |
-| Portable UI state module and tests | Implemented; host CI passed |
+| Portable UI state module and tests | Host CI passed |
+| Five-minute countdown timer screen and app navigation | Implemented in source; portable timer logic has host tests |
 | Two-mode music service contract and host tests | Implemented; backend is deliberately unbound |
 | Actions SDK audio examples | Source-audited; target-specific integration not done |
 | Public SDK dependency closure | Blocked by private vendor SSH dependencies |
