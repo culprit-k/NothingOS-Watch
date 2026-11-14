@@ -23,7 +23,6 @@ void nothingos_music_init(nothingos_music_service_t *service)
     service->state[NOTHINGOS_MUSIC_LOCAL] = NOTHINGOS_MUSIC_UNAVAILABLE;
 }
 
-/* A binding does not imply readiness; the backend must report that separately. */
 bool nothingos_music_bind(nothingos_music_service_t *service,
                           nothingos_music_mode_t mode,
                           const nothingos_music_backend_t *backend)
@@ -93,14 +92,15 @@ int nothingos_music_command(nothingos_music_service_t *service,
         state != NOTHINGOS_MUSIC_PAUSED) {
         return NOTHINGOS_MUSIC_ENOTREADY;
     }
-    if (command == NOTHINGOS_MUSIC_SET_VOLUME && value > 15U) {
+    if (command == NOTHINGOS_MUSIC_SET_VOLUME &&
+        value > NOTHINGOS_MUSIC_VOLUME_MAX) {
         return NOTHINGOS_MUSIC_EINVAL;
     }
 
     rc = backend->command(command, value, backend->context);
     if (rc == NOTHINGOS_MUSIC_OK &&
         command == NOTHINGOS_MUSIC_SET_VOLUME) {
-        service->volume = value;
+        service->volume_percent = value;
     }
     /* Playback state changes only when a real backend event reports it. */
     return rc;
