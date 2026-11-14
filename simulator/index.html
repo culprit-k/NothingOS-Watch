@@ -50,12 +50,50 @@ health:()=>`<div class="hero">Activity</div><div class="tiles"><div class="tile"
 media:()=>`<div class="hero">Music</div><div class="tiles"><div class="tile">PHONE<b>Control phone music</b></div><div class="tile">WATCH<b>On-watch library</b></div></div><div style="font-size:30px">♫</div><b>Choose a source</b><div class="sub">PHONE MODE: requires tested iPhone media controls</div><div class="sub">WATCH MODE: requires local storage, decoder and verified audio output</div><div class="pill">INTERFACE PREVIEW ONLY</div>`,
 settings:()=>`<div class="hero">Settings</div><div class="list"><div class="item"><strong>Display</strong>Brightness · Always-on display</div><div class="item"><strong>Connectivity</strong>Bluetooth · Phone link</div><div class="item"><strong>Power</strong>Battery · Sleep schedule</div><div class="item"><strong>System</strong>About · Restart</div></div>`,
 about:()=>`<div class="hero">NothingOS Wear</div><div class="wordmark">CONCEPT 0.0.1</div><div class="sub">CMF Watch Pro 2 · D398</div><div class="pill">SIMULATOR BUILD</div>`,
-timer:()=>`<div class="hero">Timer</div><div class="time">05:00</div><div class="pill">START　 RESET</div><div class="sub">INTERACTION MOCKUP</div>`
+timer:()=>`<div class="hero">Timer</div><div class="time" id="sim-timer-readout">05:00</div><div class="controls"><button id="sim-timer-toggle">START</button><button id="sim-timer-reset">RESET</button></div><div class="pill" id="sim-timer-state">READY</div><div class="sub">5-MINUTE COUNTDOWN · BROWSER DEMO</div>`
 };
-function go(page){if(!pages[page])return;content.innerHTML=pages[page]();screenname.textContent=page.toUpperCase();content.querySelectorAll('[data-page]').forEach(el=>el.addEventListener('click',()=>go(el.dataset.page)));if(page==='youtube'){const p=document.getElementById('ytplay'),o=document.getElementById('ytopen');p?.addEventListener('click',()=>{document.getElementById('ytstate').textContent='DEMO: PLAY/PAUSE PRESSED';});o?.addEventListener('click',()=>{document.getElementById('ytstate').textContent='DEMO: PHONE LAUNCH REQUEST';});}if(page==='home')tick();}
+let simTimerRemaining=300;
+let simTimerDeadline=0;
+let simTimerRunning=false;
+function updateSimTimer(){
+ if(simTimerRunning){
+  simTimerRemaining=Math.max(0,Math.ceil((simTimerDeadline-Date.now())/1000));
+  if(simTimerRemaining===0)simTimerRunning=false;
+ }
+ const readout=document.getElementById('sim-timer-readout');
+ const state=document.getElementById('sim-timer-state');
+ const toggle=document.getElementById('sim-timer-toggle');
+ if(readout)readout.textContent=String(Math.floor(simTimerRemaining/60)).padStart(2,'0')+':'+String(simTimerRemaining%60).padStart(2,'0');
+ if(state)state.textContent=simTimerRunning?'RUNNING':(simTimerRemaining===0?'TIME UP':(simTimerRemaining===300?'READY':'PAUSED'));
+ if(toggle)toggle.textContent=simTimerRunning?'PAUSE':(simTimerRemaining===0?'FINISHED':(simTimerRemaining===300?'START':'RESUME'));
+}
+function go(page){
+ if(!pages[page])return;
+ content.innerHTML=pages[page]();
+ screenname.textContent=page.toUpperCase();
+ content.querySelectorAll('[data-page]').forEach(el=>el.addEventListener('click',()=>go(el.dataset.page)));
+ if(page==='timer'){
+  document.getElementById('sim-timer-toggle')?.addEventListener('click',()=>{
+   updateSimTimer();
+   if(simTimerRunning){
+    simTimerRemaining=Math.max(0,Math.ceil((simTimerDeadline-Date.now())/1000));
+    simTimerRunning=false;
+   }else if(simTimerRemaining>0){
+    simTimerDeadline=Date.now()+simTimerRemaining*1000;
+    simTimerRunning=true;
+   }
+   updateSimTimer();
+  });
+  document.getElementById('sim-timer-reset')?.addEventListener('click',()=>{
+   simTimerRemaining=300;simTimerDeadline=0;simTimerRunning=false;updateSimTimer();
+  });
+  updateSimTimer();
+ }
+ if(page==='home')tick();
+}
 function tick(){const c=document.getElementById('clock'),d=document.getElementById('date');if(c){c.textContent=new Intl.DateTimeFormat([], {hour:'2-digit',minute:'2-digit'}).format(new Date());d.textContent=new Intl.DateTimeFormat([], {weekday:'short',month:'short',day:'numeric'}).format(new Date()).toUpperCase();}}
 document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
-go('home');tick();setInterval(tick,15000);
+go('home');tick();setInterval(tick,15000);setInterval(updateSimTimer,250);
 </script>
 </body>
 </html>
