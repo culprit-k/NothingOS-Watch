@@ -1,42 +1,52 @@
-# Phone-only development and installation path
+# Phone-only development path (iPhone owner)
 
-The owner currently has an Android phone but no computer. Use browser-based simulation and phone-side protocol exploration first. A phone cannot replace the Actions Zephyr build environment.
+The owner currently has an iPhone and no computer. An iPhone can be used to review the project, test the browser simulator, and access a cloud development environment. It cannot replace the watch's Android companion requirements or provide a safe physical firmware recovery path.
 
-## What can be done from the phone now
+## What can be done from the iPhone now
 
 1. Open the Watch Pro 2 web emulator: https://cmf.arnv.dev/emulator/watch-pro-2/
 2. Explore the CMF Watch Pro 2 UI/device simulation and test sample firmware only inside the emulator.
 3. Open upstream documentation: https://cmf.arnv.dev/
-4. Keep the physical watch on stock firmware 1.0.0.73 while developing our own interface and services.
-5. Use GitHub mobile/web to review and edit this repository. Substantial firmware builds require a Linux computer or cloud development environment.
+4. Use GitHub in Chrome to inspect the repository and, if available, create a Codespace for cloud-based development.
+5. Keep the physical watch on stock firmware 1.0.0.73 while developing the interface and services.
 
-## Android companion / BLE research
+## Codespaces setup
 
-- Community tools report direct BLE support and an experimental firmware installer path for CMF Watch Pro 2.
-- Gadgetbridge can be considered for read-only pairing/protocol diagnostics, but do not start a firmware transfer yet.
-- Before any OTA, the exact target image must be inspected and verified for D398 board identity, stock bootloader compatibility, signatures, image CRCs, and recovery. An arbitrary binary or image from another model is not safe.
-- The experimental custom Zephyr Bad Apple image is a demo, not NothingOS Wear. It is not a feature-complete replacement and must not be treated as our installable build.
+- Repository: `culprit-k/NothingOS-Watch`
+- Branch: `main`
+- Start with the smallest available Linux machine.
+- The GitHub creation screen identifies which account pays for the Codespace. Review billing and spending limits before creating it.
+- A Codespace is a cloud development environment; it does not give the iPhone direct access to watch debug pads, SWD, or a physical recovery interface.
+- The repository currently has no validated D398 firmware build workflow. Do not assume that opening a Codespace means a device-ready firmware image can be built.
 
-## Why not flash immediately from Android?
+## iPhone and watch limitations
 
-A phone-side installer only transports bytes. It does not prove the firmware image is compatible. Community documentation warns that a failed image can leave the watch unbootable and require opening the case and SWD hardware recovery. The existing public custom-firmware guide also uses a particular repacked image; that is not a release of this project.
+- iOS Safari/Chrome do not provide the Android Gadgetbridge firmware-installation route described by community projects.
+- The official CMF iOS companion app is not a general-purpose custom firmware flasher.
+- An iPhone can be used for browser-based development and UI validation, but a compatible Android test phone may eventually be needed for Android companion/BLE integration.
+- A cloud runner can compile source, but it cannot physically recover a bricked watch.
 
-## What requires a computer or cloud build runner
+## Firmware and OTA safety
 
-- Building the Actions Zephyr SDK and compiling firmware.
-- Running image inspection/repacking tools and verifying package metadata.
-- Creating reproducible build artifacts and checksums.
-- Emulator/QEMU builds and automated firmware tests.
-- Recovery tooling and SWD validation.
+Community tools report experimental BLE/OTA and custom firmware paths for the Watch Pro 2. Those projects are research references, not proof that an arbitrary image is compatible with this exact D398 device and stock firmware 1.0.0.73.
 
-A cloud runner can compile source, but it cannot provide physical recovery if the watch bricks.
+Before any OTA, the exact candidate image must be inspected and verified for:
+- D398 board identity and hardware revision
+- bootloader and partition compatibility
+- secure-boot/signature requirements
+- image format, CRC/checksums, and OTA metadata
+- preservation of the original firmware and a demonstrated recovery route
 
-## Phone-only next milestone
+A failed firmware update may require opening the watch and using internal SWD hardware recovery. A phone-side installer only transports bytes; it does not establish compatibility.
 
-**P0: emulator and UX validation.**
-- Validate round-screen navigation and screen layouts.
-- Decide launcher, quick settings, notifications, health, and settings behavior.
-- Record what hardware features the emulator actually simulates.
+## Current next milestone
+
+**P0: cloud workspace and emulator validation.**
+
+- Confirm Codespaces availability and billing ownership before creation.
+- Inspect the existing repository and establish a reproducible, non-device build environment.
+- Validate the round-screen launcher, quick settings, notifications, health, media, and settings concepts in the browser emulator.
+- Record which hardware features the emulator actually simulates.
 - Keep physical device actions read-only until a compatible image and tested recovery path exist.
 
 ## Installation release checklist
