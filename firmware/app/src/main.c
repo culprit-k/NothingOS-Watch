@@ -185,7 +185,7 @@ static void rebuild_page(void)
     lv_obj_set_style_bg_opa(screen, LV_OPA_COVER, 0);
     g_uptime_label = NULL;
 
-    switch (g_page) {
+    switch (g_ui_state.page) {
     case NOTHINGOS_PAGE_HOME:
         build_home(screen);
         break;
