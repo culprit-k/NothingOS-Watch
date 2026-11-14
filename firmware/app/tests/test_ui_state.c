@@ -22,6 +22,7 @@ static void test_navigation_cycle(void)
     nothingos_ui_state_init(&state);
     assert(nothingos_ui_state_next(&state) == NOTHINGOS_PAGE_APPS);
     assert(nothingos_ui_state_next(&state) == NOTHINGOS_PAGE_SYSTEM);
+    assert(nothingos_ui_state_next(&state) == NOTHINGOS_PAGE_TIMER);
     assert(nothingos_ui_state_next(&state) == NOTHINGOS_PAGE_HOME);
 }
 
@@ -29,10 +30,10 @@ static void test_select_page_and_reject_invalid(void)
 {
     nothingos_ui_state_t state;
     nothingos_ui_state_init(&state);
-    assert(nothingos_ui_state_select(&state, NOTHINGOS_PAGE_SYSTEM));
-    assert(state.page == NOTHINGOS_PAGE_SYSTEM);
+    assert(nothingos_ui_state_select(&state, NOTHINGOS_PAGE_TIMER));
+    assert(state.page == NOTHINGOS_PAGE_TIMER);
     assert(!nothingos_ui_state_select(&state, NOTHINGOS_PAGE_COUNT));
-    assert(state.page == NOTHINGOS_PAGE_SYSTEM);
+    assert(state.page == NOTHINGOS_PAGE_TIMER);
 }
 
 static void test_display_and_uptime(void)
