@@ -36,17 +36,18 @@ The emulator is a community research tool, not an official CMF service.
 | Component | Status |
 |---|---|
 | Project architecture and roadmap | Documented |
-| Browser UI concept | Present in simulator/index.html |
+| Browser UI concept | Present in `simulator/index.html` |
 | Original Actions/Zephyr + LVGL application shell | Source added; not yet compile-validated against the vendor SDK |
 | Home, Apps and System UI pages | Source implemented |
 | Crown/key page navigation | Source implemented; hardware input not yet validated on D398 |
-| Portable UI state module and tests | Implemented; CI host checks passed on prior revisions |
+| Portable UI state module and tests | Implemented; host CI passed |
 | Two-mode music service contract and host tests | Implemented; backend is deliberately unbound |
-| Actions SDK audio examples | Audited; target-specific integration not done |
+| Actions SDK audio examples | Source-audited; target-specific integration not done |
+| Public SDK dependency closure | Blocked by private vendor SSH dependencies |
 | Companion phone, BLE, sensor and health integrations | Not implemented |
 | Exact stock 1.0.0.73 OTA acquired and inspected | Not yet |
 | Exact D398 board/bootloader/partition/signature profile | Not yet verified |
-| Reproducible Actions Zephyr SDK build | Not yet established |
+| Reproducible full Actions Zephyr SDK build | Not yet established |
 | D398-specific NothingOS Wear board port | Not built |
 | NothingOS Wear OTA package | Does not exist yet |
 | Physical installation and recovery test | Not performed |
@@ -58,8 +59,8 @@ Public Watch Pro 2 firmware experiments provide useful development evidence, but
 Before a physical installation, this project must:
 1. Inspect the exact official stock OTA for firmware 1.0.0.73.
 2. Confirm board identity, hardware revision, partition layout, update gates and secure-boot/signature policy.
-3. Complete the JX402/D398-specific hardware port and integrate the original NothingOS Wear application.
-4. Build the app and matching resources with the correct Actions SDK and vendor inputs.
+3. Complete the D398-specific hardware port and integrate the original NothingOS Wear application.
+4. Build the app and matching resources with the complete Actions SDK and authorized vendor dependencies.
 5. Verify nested package structure, checksums and partition boundaries independently.
 6. Preserve a verified stock rollback package and test recovery on a donor D398 of the same hardware revision.
 7. Demonstrate physical boot and test display, touch, crown, BLE, charging, sensors, battery and sleep/wake.
@@ -68,22 +69,22 @@ Before a physical installation, this project must:
 
 ## Repository guide
 
-- Project roadmap: docs/PLAN.md
-- Architecture: docs/ARCHITECTURE.md
-- Music app specification: docs/MUSIC_APP_SPEC.md
-- Music backend audit: docs/MUSIC_BACKEND_AUDIT.md
-- D398 device profile: docs/DEVICE_PROFILE.md
-- Stock firmware baseline: docs/FIRMWARE_BASELINE.md
-- Installation readiness: docs/INSTALLATION_READINESS.md
-- D398 flash release gate: docs/FLASH_RELEASE_GATE.md
-- D398 public-research bring-up baseline: docs/D398_PUBLIC_RESEARCH_BASELINE.md
-- Actions SDK and audio research: docs/ACTIONS_SDK_RESEARCH.md
-- Machine-readable D398 target manifest: firmware/targets/d398/target.yaml
-- Phone-only development path: docs/PHONE_ONLY_PATH.md
-- Immediate installation audit: docs/D398_IMMEDIATE_INSTALL_AUDIT_2026-11-14.md
-- External research references: docs/EXTERNAL_RESEARCH.md
-- firmware/app/: original embedded UI application source
-- companion/android/: planned Android companion
-- simulator/: browser UI concept
+- Project roadmap: `docs/PLAN.md`
+- Architecture: `docs/ARCHITECTURE.md`
+- Music app specification: `docs/MUSIC_APP_SPEC.md`
+- Music backend audit: `docs/MUSIC_BACKEND_AUDIT.md`
+- D398 device profile: `docs/DEVICE_PROFILE.md`
+- Stock firmware baseline: `docs/FIRMWARE_BASELINE.md`
+- Installation readiness: `docs/INSTALLATION_READINESS.md`
+- D398 flash release gate: `docs/FLASH_RELEASE_GATE.md`
+- D398 public-research bring-up baseline: `docs/D398_PUBLIC_RESEARCH_BASELINE.md`
+- Actions SDK and audio research: `docs/ACTIONS_SDK_RESEARCH.md`
+- Machine-readable D398 target manifest: `firmware/targets/d398/target.yaml`
+- Phone-only development path: `docs/PHONE_ONLY_PATH.md`
+- Immediate installation audit: `docs/D398_IMMEDIATE_INSTALL_AUDIT_2026-11-14.md`
+- External research references: `docs/EXTERNAL_RESEARCH.md`
+- `firmware/app/`: original embedded UI application source
+- `companion/android/`: planned Android companion
+- `simulator/`: browser UI concept
 
 This is an independent community project and is not affiliated with Nothing or CMF.
