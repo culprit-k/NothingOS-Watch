@@ -20,10 +20,11 @@ rm -rf "$APP_DIR"
 cp -R "$TEMPLATE" "$APP_DIR"
 
 cp "$HERE/src/main.c" "$HERE/src/app_msg.h" "$HERE/src/app_msg.c" \
-   "$HERE/src/ui_state.h" "$HERE/src/ui_state.c" "$APP_DIR/src/"
+   "$HERE/src/ui_state.h" "$HERE/src/ui_state.c" \
+   "$HERE/src/music_service.h" "$HERE/src/music_service.c" \
+   "$APP_DIR/src/"
 
-# Replace the template source list explicitly. A text substitution here can
-# accidentally list app_msg.c twice because it is already in hello_world.
+# Replace the template source list explicitly so no file is duplicated.
 cat > "$APP_DIR/src/CMakeLists.txt" <<'EOF'
 # SPDX-License-Identifier: Apache-2.0
 zephyr_include_directories(.)
@@ -31,6 +32,7 @@ target_sources(app PRIVATE
     main.c
     app_msg.c
     ui_state.c
+    music_service.c
 )
 EOF
 
