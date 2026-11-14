@@ -4,7 +4,6 @@
  */
 #ifndef NOTHINGOS_UI_STATE_H
 #define NOTHINGOS_UI_STATE_H
-
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -12,7 +11,8 @@ typedef enum {
     NOTHINGOS_PAGE_HOME = 0,
     NOTHINGOS_PAGE_APPS = 1,
     NOTHINGOS_PAGE_SYSTEM = 2,
-    NOTHINGOS_PAGE_COUNT = 3
+    NOTHINGOS_PAGE_TIMER = 3,
+    NOTHINGOS_PAGE_COUNT = 4
 } nothingos_page_t;
 
 typedef struct {
@@ -28,5 +28,4 @@ nothingos_page_t nothingos_ui_state_next(nothingos_ui_state_t *state);
 void nothingos_ui_state_set_display(nothingos_ui_state_t *state, bool active);
 void nothingos_ui_state_set_uptime(nothingos_ui_state_t *state,
                                    uint32_t seconds);
-
 #endif
