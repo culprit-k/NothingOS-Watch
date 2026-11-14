@@ -37,6 +37,15 @@ jobs:
             -o /tmp/nothingos-music-service-test
       - name: Run music service tests
         run: /tmp/nothingos-music-service-test
+      - name: Compile portable timer service with strict warnings
+        run: |
+          gcc -std=c11 -Wall -Wextra -Werror -pedantic \
+            -Ifirmware/app/src \
+            firmware/app/src/timer_service.c \
+            firmware/app/tests/test_timer_service.c \
+            -o /tmp/nothingos-timer-service-test
+      - name: Run timer service tests
+        run: /tmp/nothingos-timer-service-test
       - name: Validate SDK assembly script syntax
         run: bash -n firmware/app/scripts/assemble-actions-sdk.sh
       - name: Check required app source files
@@ -47,4 +56,5 @@ jobs:
           test -s firmware/app/src/app_msg.c
           test -s firmware/app/src/ui_state.c
           test -s firmware/app/src/music_service.c
-          test -s firmware/app/tests/test_music_service.c
+          test -s firmware/app/src/timer_service.c
+          test -s firmware/app/tests/test_timer_service.c
