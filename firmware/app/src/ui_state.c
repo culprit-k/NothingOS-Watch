@@ -2,6 +2,7 @@
  * Portable NothingOS Wear UI state model.
  * SPDX-License-Identifier: Apache-2.0
  */
+#include <stddef.h>
 #include "ui_state.h"
 
 void nothingos_ui_state_init(nothingos_ui_state_t *state)
