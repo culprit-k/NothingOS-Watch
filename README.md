@@ -2,7 +2,7 @@
 
 **An original, Wear OS-inspired embedded operating system for the CMF Watch Pro 2 (D398).**
 
-> **Status: research and bring-up. There is no NothingOS Wear firmware image ready to install.** This project does not port Google's Wear OS or Android. The target is a custom embedded OS using the watch's MCU-class platform, with an LVGL interface and a companion-phone connection.
+> **Status: embedded UI source now exists, but there is no NothingOS Wear firmware image ready to install.** This project does not port Google's Wear OS or Android. The target is a custom embedded OS using the watch's MCU-class platform, an LVGL interface and a companion-phone connection.
 
 ## Owner's device baseline
 
@@ -37,7 +37,10 @@ The emulator is a community research tool, not an official CMF service.
 |---|---|
 | Project architecture and roadmap | Documented |
 | Browser UI concept | Present in `simulator/index.html` |
-| Community Watch Pro 2 emulator identified | Available for safe evaluation |
+| Original Actions/Zephyr + LVGL application shell | Source added in `firmware/app/`; not yet compile-validated |
+| Home, Apps and System UI pages | Source implemented |
+| Crown/key page navigation | Source implemented; hardware input not yet validated on D398 |
+| Companion phone, BLE, sensor and health integrations | Not implemented |
 | Exact stock 1.0.0.73 OTA acquired and inspected | Not yet |
 | Exact D398 board/bootloader/partition/signature profile | Not yet verified |
 | Reproducible Actions Zephyr SDK build | Not yet established |
@@ -47,17 +50,18 @@ The emulator is a community research tool, not an official CMF service.
 
 ## Why the watch has not been flashed
 
-An experimental public firmware exists for the Watch Pro 2, but it is a demonstration application, not NothingOS Wear. Its release notes report emulator/QEMU validation and explicitly do not claim a physical-watch flash test. A wrong image can leave the watch unbootable and may require internal SWD hardware recovery.
+Public Watch Pro 2 firmware experiments provide useful development evidence, but they are not NothingOS Wear and do not establish safe installation on this exact D398/1.0.0.73 unit. A wrong image can leave the watch unbootable and may require internal SWD hardware recovery.
 
 Before a physical installation, this project must:
 1. Inspect the exact official stock OTA for firmware 1.0.0.73.
 2. Confirm board identity, hardware revision, partition layout, update gates and secure-boot/signature policy.
-3. Build the original NothingOS Wear application for the matching hardware.
-4. Verify package structure and checksums independently.
-5. Demonstrate rollback/recovery on a donor D398 of the same hardware revision.
-6. Test boot, display, touch, crown, BLE, charging, sensors and sleep/wake.
+3. Complete the JX402/D398-specific hardware port and integrate the original NothingOS Wear application.
+4. Build the app and matching resources with the correct Actions SDK and vendor inputs.
+5. Verify nested package structure, checksums and partition boundaries independently.
+6. Preserve a verified stock rollback package and test recovery on a donor D398 of the same hardware revision.
+7. Demonstrate physical boot and test display, touch, crown, BLE, charging, sensors, battery and sleep/wake.
 
-**Do not install third-party demo firmware on the owner's only watch.** Android provides a possible BLE transfer route, not a compatibility guarantee or recovery mechanism.
+**Do not install third-party demo firmware or a development-board build on the owner's only watch.** Android provides a possible BLE transfer route, not a compatibility guarantee or recovery mechanism.
 
 ## Repository guide
 
@@ -69,8 +73,8 @@ Before a physical installation, this project must:
 - [Phone-only development path](docs/PHONE_ONLY_PATH.md)
 - [Immediate installation audit](docs/D398_IMMEDIATE_INSTALL_AUDIT_2026-11-14.md)
 - [External research references](docs/EXTERNAL_RESEARCH.md)
-- `firmware/` — future embedded firmware source
-- `companion/android/` — future Android companion
+- `firmware/app/` — original embedded UI application source
+- `companion/android/` — planned Android companion
 - `simulator/` — browser UI concept
 
 This is an independent community project and is not affiliated with Nothing or CMF.
