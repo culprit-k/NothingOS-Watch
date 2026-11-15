@@ -73,3 +73,13 @@ jobs:
           file "$BUILD/zephyr/zephyr.elf"
           sha256sum "$BUILD/zephyr/zephyr.elf"
           echo "::notice::Generic ATS3089C development-board compile only. This output is NOT CMF Watch Pro 2 D398 firmware and must not be flashed."
+
+      - name: Publish generic-board build outputs for inspection only
+        uses: actions/upload-artifact@v4
+        with:
+          name: nothingos-wear-generic-ats3089c-inspection-only
+          if-no-files-found: error
+          path: |
+            third_party/lv_port_actions_technology/action_technology_sdk/application/app_demo/nothingos_wear/outdir/ats3089c_dev_watch/zephyr/zephyr.elf
+            third_party/lv_port_actions_technology/action_technology_sdk/application/app_demo/nothingos_wear/outdir/ats3089c_dev_watch/zephyr/zephyr.bin
+            third_party/lv_port_actions_technology/action_technology_sdk/application/app_demo/nothingos_wear/outdir/ats3089c_dev_watch/zephyr/.config
