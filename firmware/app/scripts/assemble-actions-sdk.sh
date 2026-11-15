@@ -55,6 +55,11 @@ target_sources(app PRIVATE
 EOF
 
 sed -i 's/project(hello_world)/project(nothingos_wear)/' "$APP_DIR/CMakeLists.txt"
+
+# Use the project configuration rather than inheriting the template Kconfig.
+# Ensure a line boundary before appending the optional additions.
+cp "$HERE/prj.conf" "$APP_DIR/prj.conf"
+printf '\\n' >> "$APP_DIR/prj.conf"
 cat "$HERE/prj.extra.conf" >> "$APP_DIR/prj.conf"
 
 cat > "$SDK_ROOT/.build_config" <<EOF
