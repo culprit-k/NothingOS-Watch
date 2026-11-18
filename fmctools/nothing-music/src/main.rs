@@ -20,9 +20,9 @@ mod device {
     const DIM: u16 = 0x8410;
     const PANEL: u16 = 0x2124;
     const ACCENT: u16 = 0xFD20;
-    const ART_X: i16 = 169;
-    const ART_Y: i16 = 83;
-    const PIXEL: i16 = 4;
+    const ART_X: i16 = 147;
+    const ART_Y: i16 = 91;
+    const PIXEL: i16 = 5;
     const REQUEST_MS: u32 = 4000;
 
     static mut MODEL: Model = Model::new();
@@ -44,15 +44,15 @@ mod device {
             batch.style(ROOT, Prop::BgOpa, 0, 0).ok()?;
 
             let title = batch.create(Class::Label, ROOT).ok()?;
-            batch.size(title, 360, 32).ok()?;
+            batch.size(title, 400, 38).ok()?;
             batch.style(title, Prop::TextAlign, 0, 2).ok()?;
             batch.style(title, Prop::TextColor, 0, WHITE as i32).ok()?;
             batch.long_mode(title, LongMode::Dot).ok()?;
             batch.text(title, "Waiting for track").ok()?;
-            batch.align(title, Align::Center, 0, 20).ok()?;
+            batch.align(title, Align::Center, 0, 16).ok()?;
 
             let artist = batch.create(Class::Label, ROOT).ok()?;
-            batch.size(artist, 360, 32).ok()?;
+            batch.size(artist, 400, 34).ok()?;
             batch.style(artist, Prop::TextAlign, 0, 2).ok()?;
             batch.style(artist, Prop::TextColor, 0, DIM as i32).ok()?;
             batch.long_mode(artist, LongMode::Dot).ok()?;
@@ -107,16 +107,16 @@ mod device {
             }
         } else {
             // Deliberate fallback artwork: a vinyl disc, not falsely presented as the real album cover.
-            api.rect(ART_X, ART_Y, 128, 128, PANEL);
-            for y in 0..128i32 {
-                let dy = y - 64;
-                let outer = isqrt((64 * 64 - dy * dy).max(0) as u32) as i32;
-                api.rect(ART_X + (64 - outer) as i16, ART_Y + y as i16,
+            api.rect(ART_X, ART_Y, 160, 160, PANEL);
+            for y in 0..160i32 {
+                let dy = y - 80;
+                let outer = isqrt((80 * 80 - dy * dy).max(0) as u32) as i32;
+                api.rect(ART_X + (80 - outer) as i16, ART_Y + y as i16,
                     (outer * 2 + 1) as u16, 1, 0x4208);
                 let ring = 28i32;
                 if dy.abs() <= ring {
                     let inner = isqrt((ring * ring - dy * dy).max(0) as u32) as i32;
-                    api.rect(ART_X + (64 - inner) as i16, ART_Y + y as i16,
+                    api.rect(ART_X + (80 - inner) as i16, ART_Y + y as i16,
                         (inner * 2 + 1) as u16, 1, ACCENT);
                 }
                 let hole = 7i32;
@@ -126,28 +126,28 @@ mod device {
                         (inner * 2 + 1) as u16, 1, BLACK);
                 }
             }
-            center(api, ART_Y + 140, "WAITING FOR ALBUM ART", DIM);
+            center(api, ART_Y + 170, "ALBUM ART NOT RECEIVED", DIM);
         }
     }
 
     fn draw(api: &Api, model: &Model, status: &str) {
         api.rect(0, 0, api.width, api.height, BLACK);
-        center(api, 28, "NOTHING MUSIC", WHITE);
-        center(api, 52, "NOW PLAYING", DIM);
+        center(api, 22, "NOTHING MUSIC", WHITE);
+        center(api, 48, "NOW PLAYING", DIM);
         draw_art(api, model);
 
         let state = if !model.phone_available { "NO PHONE MEDIA" }
             else if model.playing { "NOW PLAYING" } else { "PAUSED" };
-        center(api, 307, state, ACCENT);
-        center(api, 329, status, DIM);
+        center(api, 300, state, ACCENT);
+        center(api, 322, status, DIM);
 
-        for x in [112i16, 196, 280] {
-            api.rect(x, 360, 74, 52, PANEL);
+        for x in [92i16, 184, 276] {
+            api.rect(x, 356, 86, 58, PANEL);
         }
-        api.text(126, 378, "PREV", WHITE);
-        api.text(211, 378, if model.playing { "PAUSE" } else { "PLAY" }, WHITE);
-        api.text(294, 378, "NEXT", WHITE);
-        center(api, 430, "CROWN: BACK", DIM);
+        api.text(110, 378, "PREVIOUS", WHITE);
+        api.text(205, 378, if model.playing { "PAUSE" } else { "PLAY" }, WHITE);
+        api.text(298, 378, "NEXT", WHITE);
+        center(api, 434, "CROWN / BUTTON: BACK", DIM);
         api.show();
     }
 
