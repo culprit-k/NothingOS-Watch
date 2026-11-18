@@ -13,7 +13,12 @@ mod device {
     const BLACK:u16=0; const WHITE:u16=0xffff; const GREY:u16=0x8410; const PANEL:u16=0x2124; const ACCENT:u16=0xfd20;
     const CELL:i16=4; const ART_X:i16=169; const ART_Y:i16=88;
 
-    fn center(api:&Api,y:i16,s:&str,c:u16) { api.text(api.width as i16/2-8*s.len().min(28) as i16,y,s,c); }
+    fn center(api:&Api,y:i16,s:&str,c:u16) {
+        let mut n=s.len().min(28);
+        while !s.is_char_boundary(n) { n-=1; }
+        let shown=&s[..n];
+        api.text(api.width as i16/2-8*shown.len() as i16,y,shown,c);
+    }
     fn art(api:&Api,m:&Model) {
         if !m.art_ready {
             api.rect(ART_X,ART_Y,128,128,PANEL);
@@ -33,7 +38,7 @@ mod device {
         center(api,307,if !m.phone_available {"NO PHONE MEDIA"} else if m.playing {"NOW PLAYING"} else {"PAUSED"},ACCENT);
         center(api,329,status,GREY);
         for x in [126i16,204,282] { api.rect(x,365,58,48,PANEL); }
-        center(api,382,"PREV     PLAY     NEXT",WHITE); center(api,430,"CROWN: VOLUME UNAVAILABLE",GREY); api.show();
+        center(api,382,"PREV     PLAY     NEXT",WHITE); center(api,430,"VOLUME N/A",GREY); api.show();
     }
     fn send_command(api:&Api,m:&Model,cmd:u8)->&'static str {
         if !m.phone_available { return "NO PHONE MEDIA"; }
