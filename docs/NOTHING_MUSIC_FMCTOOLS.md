@@ -1,40 +1,38 @@
-# Nothing Music — fmctools implementation
+# Nothing Music — CMF Watch Pro 2
 
-This is a separate Rust app target alongside the existing NothingOS Wear Zephyr/LVGL project.
+## App architecture
 
-## SDK facts
+The installable app is a `no_std` Rust binary built through the community `fmctools/apps` workflow and the pinned `cmf-watch-sdk`. It draws a Now Playing screen on the 466×466 RGB565 framebuffer.
 
-- ABI 1.1 provides 128-byte host messages and 4 KiB app storage.
-- ABI 1.3 adds the app-owned back field. The current SDK source also contains media events, Api::media_key and Api::media_bind; these media operations require a loader build dated 2026-11-16 or newer, not merely an ABI 1.3 package.
-- Media-key commands are play, pause, previous and next. The documented interface has no volume command.
-- The app ABI has no documented audio decoder or speaker-output function.
+## Verified SDK integration
 
-## Feature status
+- `Api::media_bind(None, None)` subscribes to phone-media state events.
+- `Api::media_key` sends play, pause, previous and next to the phone.
+- `MEDIA` events report playing state in `x` and phone/media availability in `y`.
+- `Api::send/recv` provide the 128-byte host message channel.
+- The current SDK app interface does not expose an audio decoder, audio stream or speaker-output API.
 
-| Feature | Status |
-|---|---|
-| Rust watch app source | Added |
-| Round Now Playing UI | Added |
-| Play/pause/previous/next | SDK API wired; physical D398/iPhone test pending |
-| Phone/playback status | ABI 1.3 event wired; physical test pending |
-| Metadata and cover thumbnail protocol | Added; phone host bridge pending |
-| Volume | Not exposed by current media-key API |
-| Standalone audio decoding | Not implemented |
-| Watch speaker output | Not implemented; D398 route unverified |
-| iOS companion | Not implemented; no global artwork access assumed |
+The media-control implementation requires the loader build that contains the phone-media support (2026-11-16 or newer). The API source is present in the SDK pinned by the community apps Makefile.
 
-## Audio research
+## Album-art and metadata protocol
 
-The public Actions Technology SDK has local-music and Bluetooth A2DP/AVRCP demo applications. They are useful source references but target generic Actions evaluation boards. The D398 amplifier, speaker route, Bluetooth roles, writable storage and memory configuration need independent verification. The public vendor SDK manifest also references private SSH dependencies, preventing a complete reproducible build from the public checkout alone.
+The watch-side parser and renderer support a small `NM1` protocol:
+- `NM1R`: request a fresh metadata/artwork snapshot.
+- `NM1M`: state, title length, artist length, UTF-8 title and artist.
+- `NM1B`: begin a 32×32 RGB565 artwork transfer.
+- `NM1C`: sequential RGB565 artwork chunks.
+- `NM1X`: clear artwork.
 
-No firmware or loader update is authorized by this source change. Keep the watch on stock firmware until loader and device compatibility are verified.
+The parser rejects malformed lengths, invalid UTF-8, out-of-order chunks and oversized transfers. Unit tests cover these cases. If no image is received, the watch displays a deliberately generic vinyl placeholder.
 
-## Additional speaker-path research
+The app-side protocol is implemented. A production iOS host that reads Apple Music/Spotify artwork and sends `NM1` packets is not included yet. The upstream SDK describes a shared-link iOS host design, but the community companion's phone services are not yet a released implementation. Do not mistake the protocol parser for a working iPhone artwork bridge.
 
-The community repository fmctools/firmware-wp2-badapple contains a separate Zephyr firmware-level player for the Watch Pro 2. Its source describes mono 16 kHz MP3 decoding, a 32 KiB PCM ring buffer and playback through the DAC/PMUDAC speaker route. Its validation record reports QEMU/package validation but explicitly says physical flashing and sustained playback remain unverified. This is evidence that a firmware-level audio path has been developed, not evidence that the Rust app-loader ABI exposes that path.
+## Speaker playback
 
-Therefore the complete product remains split:
-- Rust app-loader app: phone controls, metadata/artwork display and touch UI.
-- NothingOS Zephyr firmware service: local-file decoding and speaker output, ported only after the D398 audio path and SDK dependencies are verified.
+This app controls music on the paired phone; it does not play decoded audio through the watch speaker. The public app ABI does not expose the speaker/DAC route. Standalone speaker playback would require a separate firmware-level audio service and D398 hardware validation, not a normal store app. No firmware or loader image is modified by this project.
 
-Reference: https://github.com/fmctools/firmware-wp2-badapple
+## Build and validation
+
+`scripts/build-fmctools-app.sh` overlays the crate into a clean checkout of `fmctools/apps`, then runs the same `make check`, `make test` and `make build` targets used by the community repository. GitHub Actions is configured to upload the resulting `.wp2app` package as a workflow artifact.
+
+No physical D398 install or speaker test has been performed. The package must pass CI before it is treated as build-verified.
