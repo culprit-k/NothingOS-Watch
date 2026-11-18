@@ -37,4 +37,37 @@ class Wp2ProtocolTest {
         assertEquals(128L, Wp2Protocol.readLe32(chunk, 0))
         assertArrayEquals(byteArrayOf(5, 6), chunk.copyOfRange(4, 6))
     }
+    @Test fun installedSlotHeaderIsParsedAndValidated() {
+        val bytes = ByteArray(64)
+        val buffer = java.nio.ByteBuffer.wrap(bytes).order(java.nio.ByteOrder.LITTLE_ENDIAN)
+        buffer.put("WP2A".toByteArray(Charsets.US_ASCII))
+        buffer.putShort(1)
+        buffer.put(0)
+        buffer.put(2)
+        val name = "vitalis".toByteArray(Charsets.UTF_8)
+        buffer.put(name)
+        buffer.position(32)
+        buffer.putInt(7)
+        buffer.putInt(100)
+        buffer.putInt(0)
+        buffer.putInt(0)
+        buffer.putInt(0)
+        buffer.putInt(0)
+        buffer.put(ByteArray(8))
+        val crc = java.util.zip.CRC32().apply { update(bytes, 0, 52) }.value
+        buffer.putInt(52, crc.toInt())
+
+        val info = Wp2Protocol.parseInfoHeader(bytes)
+        assertEquals("vitalis", info.name)
+        assertEquals(7L, info.version)
+        assertEquals(0, info.kind)
+        assertEquals(2, info.abiMinor)
+
+        bytes[56] = 1
+        try {
+            Wp2Protocol.parseInfoHeader(bytes)
+            fail("Non-zero reserved bytes must be rejected")
+        } catch (_: IllegalArgumentException) { }
+    }
+
 }
