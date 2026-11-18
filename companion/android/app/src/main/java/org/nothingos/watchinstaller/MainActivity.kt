@@ -66,7 +66,7 @@ Watch transfer is not enabled in this build."
     private fun requestScanPermission() {
         val needed = if (android.os.Build.VERSION.SDK_INT >= 31)
             arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT)
-        else emptyArray()
+        else arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
         val missing = needed.filter { checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED }
         if (missing.isNotEmpty()) permissionRequest.launch(missing.toTypedArray()) else scanWatch()
     }
@@ -108,7 +108,7 @@ Watch transfer is not enabled in this build."
 private object Wp2Package {
     data class Info(val name: String, val version: Long, val abi: Int)
     fun validate(b: ByteArray): Info {
-        require(b.size >= 56) { "File is shorter than the WP2A header" }
+        require(b.size >= 64) { "File is shorter than the WP2A header" }
         require(String(b, 0, 4, Charsets.US_ASCII) == "WP2A") { "Missing WP2A magic" }
         fun u16(o: Int) = (b[o].toInt() and 255) or ((b[o+1].toInt() and 255) shl 8)
         fun u32(o: Int): Long = (b[o].toLong() and 255) or ((b[o+1].toLong() and 255) shl 8) or ((b[o+2].toLong() and 255) shl 16) or ((b[o+3].toLong() and 255) shl 24)
@@ -122,9 +122,9 @@ private object Wp2Package {
         val imageSize = u32(36)
         val relocationCount = u32(44)
         require(imageSize <= Int.MAX_VALUE && relocationCount <= Int.MAX_VALUE) { "Package is too large" }
-        val expected = 56L + imageSize + relocationCount * 4L
+        val expected = 64L + imageSize + relocationCount * 4L
         require(expected == b.size.toLong()) { "Package length does not match header" }
-        val crc = CRC32().apply { update(b, 56, b.size - 56) }.value
+        val crc = CRC32().apply { update(b, 64, b.size - 64) }.value
         require(crc == u32(48)) { "Image/relocation CRC mismatch" }
         val headerCrc = CRC32().apply { update(b, 0, 52) }.value
         require(headerCrc == u32(52)) { "Header CRC mismatch" }
