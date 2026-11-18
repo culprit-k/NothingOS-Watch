@@ -259,7 +259,7 @@ internal class CmfWatchConnection(
     private fun writeCharacteristic(uuidText: String, bytes: ByteArray, response: Boolean) {
         val activeGatt = requireNotNull(gatt)
         val characteristic = findCharacteristic(uuidText)
-        val useResponse = response || bytes.size > activeGatt.mtu - 3
+        val useResponse = response || bytes.size > negotiatedMtu - 3
         val writeType = if (useResponse) BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
             else BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
 
