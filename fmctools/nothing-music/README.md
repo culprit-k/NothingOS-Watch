@@ -24,7 +24,7 @@ The physical speaker and the Actions SDK's A2DP/local-player demos do not prove 
 
 Clone fmctools/cmf-watch-sdk next to this repository, or set CMF_WATCH_SDK to its checkout:
 
-    CMF_WATCH_SDK=../cmf-watch-sdk ./scripts/build-fmctools-app.sh
+    CMF_WATCH_SDK=../cmf-watch-sdk bash scripts/build-fmctools-app.sh
 
 See the upstream SDK docs/app-guide.md for toolchain, loader and installation prerequisites. This app requires ABI 1.3 media support.
 
