@@ -1,14 +1,18 @@
-# Android companion app
+# Nothing Watch Installer for Android
 
-This directory is reserved for an Android application running on the paired phone, not on the watch.
+This is the phone-side companion for the CMF Watch Pro 2 (D398), built separately from the watch application.
 
-Planned responsibilities:
-- BLE discovery, pairing, session, and reconnect.
-- Notification relay through Android Notification Listener permission, enabled explicitly by the user.
-- Media metadata/control relay through Android media-session APIs where supported.
-- Time and selected phone-state sync.
-- Device status and diagnostics.
+## Prototype 0.1.0
 
-First document verified D398 BLE services, characteristics, and protocol behavior. Do not invent UUIDs, opcodes, keys, or packet layouts.
+- Selects a `.wp2app` package through Android's document picker.
+- Validates WP2A magic, ABI, package length, and header/body CRC fields locally.
+- Scans for a nearby device advertising as CMF Watch Pro 2.
+- Does **not** connect, authenticate, transfer, delete, or install anything yet.
 
-Explain notification access before requesting it. Do not upload notification content. Do not log message bodies, pairing secrets, or identifiers. Provide per-feature toggles and disconnect/forget-device controls.
+## Installation protocol requirements
+
+The verified community SDK uses a BLE GATT session, shell-secret retrieval, AES-CBC/CRC framing, session authentication, and the WP2A INFO/BEGIN/DATA/END command sequence. A plain BLE write is not compatible. These stages must be ported and tested before enabling installation.
+
+The APK is built by GitHub Actions. See the repository's Actions tab and the `Android Watch Installer` workflow for the debug APK artifact.
+
+Never confirm unexpected pairing/binding prompts or attempt firmware flashing as part of this app. This is an app-package installer prototype, not a firmware flasher.
