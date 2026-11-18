@@ -8,10 +8,9 @@ fn main() {}
 #[cfg(any(target_os = "none", wp2_sim))]
 mod device {
     use crate::logic::{Model, ART_H, ART_W, MSG_MAX};
-    use cmf_wp2_app::{
-        Api, BUTTON, CROWN, MEDIA, MEDIA_NEXT, MEDIA_PAUSE, MEDIA_PLAY, MEDIA_PREV,
-        MESSAGE, PAUSE, RESUME, TOUCH_DOWN,
-    };
+    use cmf_wp2_app::lv::{Align, Batch, Class, LongMode, Lv, Obj, Prop, ROOT};
+    use cmf_wp2_app::{stock, Api, BUTTON, CROWN, MEDIA, MEDIA_NEXT, MEDIA_PAUSE, MEDIA_PLAY, MEDIA_PREV,
+        MESSAGE, PAUSE, RESUME, TOUCH_DOWN};
 
     cmf_wp2_app::entry!(main);
     cmf_wp2_app::app_icon!();
@@ -28,15 +27,61 @@ mod device {
 
     static mut MODEL: Model = Model::new();
 
+    /// Transparent LVGL labels sit above the canvas: the loader fills them with the phone's live title and artist.
+    struct Ui {
+        lv: Lv,
+        batch: Batch,
+        title: Obj,
+        artist: Obj,
+    }
+
+    impl Ui {
+        fn new(api: &Api) -> Option<Self> {
+            let lv = api.lv()?;
+            let mut batch = Batch::new()?;
+            stock::theme(&mut batch).ok()?;
+            // Keep the root transparent so the app's RGB565 album-art canvas remains visible underneath.
+            batch.style(ROOT, Prop::BgOpa, 0, 0).ok()?;
+
+            let title = batch.create(Class::Label, ROOT).ok()?;
+            batch.size(title, 360, 32).ok()?;
+            batch.style(title, Prop::TextAlign, 0, 2).ok()?;
+            batch.style(title, Prop::TextColor, 0, WHITE as i32).ok()?;
+            batch.long_mode(title, LongMode::Dot).ok()?;
+            batch.text(title, "Waiting for track").ok()?;
+            batch.align(title, Align::Center, 0, 20).ok()?;
+
+            let artist = batch.create(Class::Label, ROOT).ok()?;
+            batch.size(artist, 360, 32).ok()?;
+            batch.style(artist, Prop::TextAlign, 0, 2).ok()?;
+            batch.style(artist, Prop::TextColor, 0, DIM as i32).ok()?;
+            batch.long_mode(artist, LongMode::Dot).ok()?;
+            batch.text(artist, "Connect phone media").ok()?;
+            batch.align(artist, Align::Center, 0, 48).ok()?;
+
+            batch.submit(&lv).ok()?;
+            Some(Self { lv, batch, title, artist })
+        }
+
+        fn metadata(&mut self, model: &Model) {
+            if model.metadata_received {
+                let _ = self.batch.text(self.title, model.title())
+                    .and_then(|_| self.batch.text(self.artist, model.artist()))
+                    .and_then(|_| self.batch.submit(&self.lv));
+            }
+        }
+    }
+
     fn center(api: &Api, y: i16, text: &str, color: u16) {
         let mut n = text.len().min(56);
         while !text.is_char_boundary(n) { n -= 1; }
         let shown = &text[..n];
         let chars = shown.chars().count().min(28);
-        let mut end = shown.len();
-        if chars < shown.chars().count() {
-            end = shown.char_indices().nth(chars).map_or(shown.len(), |(i, _)| i);
-        }
+        let end = if chars < shown.chars().count() {
+            shown.char_indices().nth(chars).map_or(shown.len(), |(i, _)| i)
+        } else {
+            shown.len()
+        };
         let shown = &shown[..end];
         api.text(api.width as i16 / 2 - 8 * shown.chars().count() as i16, y, shown, color);
     }
@@ -91,9 +136,6 @@ mod device {
         center(api, 52, "NOW PLAYING", DIM);
         draw_art(api, model);
 
-        center(api, 250, if model.title_len == 0 { "Waiting for track info" } else { model.title() }, WHITE);
-        center(api, 276, if model.artist_len == 0 { "Connect phone media" } else { model.artist() }, DIM);
-
         let state = if !model.phone_available { "NO PHONE MEDIA" }
             else if model.playing { "NOW PLAYING" } else { "PAUSED" };
         center(api, 307, state, ACCENT);
@@ -103,7 +145,7 @@ mod device {
             api.rect(x, 360, 74, 52, PANEL);
         }
         api.text(126, 378, "PREV", WHITE);
-        api.text(211, 378, "PLAY", WHITE);
+        api.text(211, 378, if model.playing { "PAUSE" } else { "PLAY" }, WHITE);
         api.text(294, 378, "NEXT", WHITE);
         center(api, 430, "CROWN: BACK", DIM);
         api.show();
@@ -133,18 +175,25 @@ mod device {
         }
     }
 
-    fn receive(api: &Api, model: &mut Model) -> bool {
+    fn receive(api: &Api, model: &mut Model, ui: &mut Option<Ui>) -> bool {
         let mut changed = false;
         let mut buf = [0u8; MSG_MAX];
         while let Some(packet) = api.recv(&mut buf) {
-            if model.apply(packet).is_ok() { changed = true; }
+            if model.apply(packet).is_ok() {
+                if let Some(view) = ui.as_mut() { view.metadata(model); }
+                changed = true;
+            }
         }
         changed
     }
 
     fn main(api: &'static Api) -> i32 {
         let model = unsafe { &mut *core::ptr::addr_of_mut!(MODEL) };
-        let bind = api.media_bind(None, None);
+        let mut ui = Ui::new(api);
+        let bind = match ui.as_ref() {
+            Some(view) => api.media_bind(Some(view.title), Some(view.artist)),
+            None => -22,
+        };
         let mut status = if bind == 0 { "WAITING FOR PHONE" }
             else if bind == -22 { "UPDATE APP LOADER" } else { "PHONE STATUS UNAVAILABLE" };
         let mut last_request = api.now().wrapping_sub(REQUEST_MS);
@@ -161,7 +210,7 @@ mod device {
                 dirty = false;
             }
             let Some(event) = api.event(250) else {
-                if receive(api, model) { dirty = true; }
+                if receive(api, model, &mut ui) { dirty = true; }
                 continue;
             };
             match event.kind {
@@ -181,7 +230,7 @@ mod device {
                     request_snapshot(api);
                     dirty = true;
                 }
-                MESSAGE => dirty |= receive(api, model),
+                MESSAGE => dirty |= receive(api, model, &mut ui),
                 MEDIA => {
                     model.set_media_state(event.x != 0, event.y != 0);
                     status = "PHONE STATE UPDATED";
