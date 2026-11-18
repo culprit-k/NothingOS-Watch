@@ -1,0 +1,12 @@
+[package]
+name = "nothing-music"
+edition = "2024"
+license = "MIT"
+version = "0.1.0"
+
+[dependencies]
+cmf-wp2-app = { path = "../../cmf-wp2-app" }
+
+[[bin]]
+name = "nothing-music"
+bench = false
