@@ -27,6 +27,7 @@ pub struct Model {
     pub title_len: usize,
     pub artist: [u8; TEXT_MAX],
     pub artist_len: usize,
+    pub metadata_received: bool,
     pub phone_available: bool,
     pub playing: bool,
     pub art: [u8; ART_BYTES],
@@ -41,6 +42,7 @@ impl Model {
             title_len: 0,
             artist: [0; TEXT_MAX],
             artist_len: 0,
+            metadata_received: false,
             phone_available: false,
             playing: false,
             art: [0; ART_BYTES],
@@ -92,6 +94,7 @@ impl Model {
                 self.artist[..artist_len].copy_from_slice(artist);
                 self.title_len = title_len;
                 self.artist_len = artist_len;
+                self.metadata_received = true;
                 self.phone_available = state != 0;
                 self.playing = state == 2;
                 Ok(())
