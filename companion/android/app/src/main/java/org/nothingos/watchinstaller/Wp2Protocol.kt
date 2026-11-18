@@ -68,6 +68,8 @@ internal object Wp2Protocol {
         val kind = data[6].toInt() and 255
         val minor = data[7].toInt() and 255
         require(abi == 1 && kind in 0..1) { "Unsupported package ABI or kind" }
+        require(data.copyOfRange(56, 64).all { it.toInt() == 0 }) { "Reserved package header bytes are not zero" }
+        require(data.copyOfRange(8, 32).any { it.toInt() != 0 }) { "Package name is empty" }
         val nameBytes = data.copyOfRange(8, 32).takeWhile { it.toInt() != 0 }.toByteArray()
         val name = nameBytes.toString(Charsets.UTF_8)
         val version = b.getInt(32).toLong() and 0xFFFFFFFFL
@@ -78,6 +80,28 @@ internal object Wp2Protocol {
         require(crc32(data.copyOfRange(64, data.size)) == (b.getInt(48).toLong() and 0xFFFFFFFFL)) { "Body CRC mismatch" }
         require(crc32(data.copyOfRange(0, 52)) == (b.getInt(52).toLong() and 0xFFFFFFFFL)) { "Header CRC mismatch" }
         return PackageInfo(name, version, kind, minor, data.size)
+    }
+
+    /** Parse the 64-byte package header returned by INFO for an installed slot. */
+    fun parseInfoHeader(header: ByteArray): PackageInfo {
+        require(header.size == 64) { "Installed package header must be exactly 64 bytes" }
+        require(header.copyOfRange(0, 4).contentEquals("WP2A".toByteArray(Charsets.US_ASCII))) {
+            "Installed slot does not contain a WP2A package"
+        }
+        val b = ByteBuffer.wrap(header).order(ByteOrder.LITTLE_ENDIAN)
+        val abi = b.getShort(4).toInt() and 0xFFFF
+        val kind = header[6].toInt() and 0xFF
+        val minor = header[7].toInt() and 0xFF
+        require(abi == 1 && kind in 0..1) { "Unsupported installed package ABI or kind" }
+        require(header.copyOfRange(56, 64).all { it.toInt() == 0 }) { "Installed header reserved bytes are not zero" }
+        require(crc32(header.copyOfRange(0, 52)) == (b.getInt(52).toLong() and 0xFFFFFFFFL)) {
+            "Installed package header CRC mismatch"
+        }
+        val nameBytes = header.copyOfRange(8, 32).takeWhile { it.toInt() != 0 }.toByteArray()
+        require(nameBytes.isNotEmpty()) { "Installed package name is empty" }
+        val name = nameBytes.toString(Charsets.UTF_8)
+        val version = b.getInt(32).toLong() and 0xFFFFFFFFL
+        return PackageInfo(name, version, kind, minor, 64)
     }
 
     fun installBegin(slot: Int, pkg: ByteArray): ByteArray {
