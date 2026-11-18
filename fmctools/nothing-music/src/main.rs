@@ -29,10 +29,25 @@ mod device {
     static mut MODEL: Model = Model::new();
 
     fn center(api: &Api, y: i16, text: &str, color: u16) {
-        let mut n = text.len().min(28);
+        let mut n = text.len().min(56);
         while !text.is_char_boundary(n) { n -= 1; }
         let shown = &text[..n];
-        api.text(api.width as i16 / 2 - 8 * shown.len() as i16, y, shown, color);
+        let chars = shown.chars().count().min(28);
+        let mut end = shown.len();
+        if chars < shown.chars().count() {
+            end = shown.char_indices().nth(chars).map_or(shown.len(), |(i, _)| i);
+        }
+        let shown = &shown[..end];
+        api.text(api.width as i16 / 2 - 8 * shown.chars().count() as i16, y, shown, color);
+    }
+
+    fn isqrt(n: u32) -> u32 {
+        let (mut lo, mut hi) = (0u32, n.min(128) + 1);
+        while lo + 1 < hi {
+            let mid = lo + (hi - lo) / 2;
+            if mid * mid <= n { lo = mid; } else { hi = mid; }
+        }
+        lo
     }
 
     fn draw_art(api: &Api, model: &Model) {
@@ -48,20 +63,24 @@ mod device {
         } else {
             // Deliberate fallback artwork: a vinyl disc, not falsely presented as the real album cover.
             api.rect(ART_X, ART_Y, 128, 128, PANEL);
-            for y in 0..128i16 {
+            for y in 0..128i32 {
                 let dy = y - 64;
-                let half = (4096 - dy * dy).max(0) as f32;
-                let mut x = 0i16;
-                while x < 128 {
-                    let dx = x - 64;
-                    if (dx * dx) as f32 + half <= 4096.0 {
-                        api.rect(ART_X + x, ART_Y + y, 1, 1,
-                            if (dx.abs() + dy.abs()) % 9 < 3 { ACCENT } else { 0x4208 });
-                    }
-                    x += 1;
+                let outer = isqrt((64 * 64 - dy * dy).max(0) as u32) as i32;
+                api.rect(ART_X + (64 - outer) as i16, ART_Y + y as i16,
+                    (outer * 2 + 1) as u16, 1, 0x4208);
+                let ring = 28i32;
+                if dy.abs() <= ring {
+                    let inner = isqrt((ring * ring - dy * dy).max(0) as u32) as i32;
+                    api.rect(ART_X + (64 - inner) as i16, ART_Y + y as i16,
+                        (inner * 2 + 1) as u16, 1, ACCENT);
+                }
+                let hole = 7i32;
+                if dy.abs() <= hole {
+                    let inner = isqrt((hole * hole - dy * dy).max(0) as u32) as i32;
+                    api.rect(ART_X + (64 - inner) as i16, ART_Y + y as i16,
+                        (inner * 2 + 1) as u16, 1, BLACK);
                 }
             }
-            api.rect(ART_X + 56, ART_Y + 56, 16, 16, BLACK);
             center(api, ART_Y + 140, "WAITING FOR ALBUM ART", DIM);
         }
     }
