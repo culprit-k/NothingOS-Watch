@@ -10,8 +10,8 @@ if [[ ! -f "$SDK_DIR/sdk/Cargo.toml" || ! -x "$SDK_DIR/scripts/build-app" ]]; th
   exit 2
 fi
 mkdir -p "$SDK_DIR/sdk/examples"
-rm -rf "$APP_DST"
-cp -R "$APP_SRC" "$APP_DST"
+mkdir -p "$APP_DST"
+cp -R "$APP_SRC/." "$APP_DST/"
 python3 - "$SDK_DIR/sdk/Cargo.toml" <<'PY'
 from pathlib import Path
 import sys
