@@ -5,7 +5,7 @@ This is a separate Rust app target alongside the existing NothingOS Wear Zephyr/
 ## SDK facts
 
 - ABI 1.1 provides 128-byte host messages and 4 KiB app storage.
-- ABI 1.3 adds phone media events, Api::media_key and Api::media_bind.
+- ABI 1.3 adds the app-owned back field. The current SDK source also contains media events, Api::media_key and Api::media_bind; these media operations require a loader build dated 2026-11-16 or newer, not merely an ABI 1.3 package.
 - Media-key commands are play, pause, previous and next. The documented interface has no volume command.
 - The app ABI has no documented audio decoder or speaker-output function.
 
