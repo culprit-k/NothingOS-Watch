@@ -1,30 +1,28 @@
 #!/usr/bin/env bash
 set -euo pipefail
+
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SDK_DIR="${CMF_WATCH_SDK:-$ROOT/../cmf-watch-sdk}"
+WORK="${FMC_APPS_WORK:-$ROOT/target/fmctools-apps}"
 APP_SRC="$ROOT/fmctools/nothing-music"
-APP_DST="$SDK_DIR/sdk/examples/nothing-music"
-if [[ ! -f "$SDK_DIR/sdk/Cargo.toml" || ! -x "$SDK_DIR/scripts/build-app" ]]; then
-  echo "cmf-watch-sdk checkout not found at: $SDK_DIR" >&2
-  echo "Clone https://github.com/fmctools/cmf-watch-sdk or set CMF_WATCH_SDK." >&2
+
+if [[ ! -f "$APP_SRC/store.toml" || ! -f "$APP_SRC/src/main.rs" ]]; then
+  echo "Nothing Music app source is incomplete: $APP_SRC" >&2
   exit 2
 fi
-mkdir -p "$SDK_DIR/sdk/examples"
-mkdir -p "$APP_DST"
-cp -R "$APP_SRC/." "$APP_DST/"
-python3 - "$SDK_DIR/sdk/Cargo.toml" <<'PY'
-from pathlib import Path
-import sys
-p = Path(sys.argv[1])
-s = p.read_text()
-member = '"examples/nothing-music"'
-if member not in s:
-    anchor = '"examples/hello",'
-    if anchor not in s:
-        raise SystemExit("Could not find SDK workspace member insertion point")
-    p.write_text(s.replace(anchor, anchor + " " + member + ",", 1))
-PY
-cd "$SDK_DIR"
-nix-shell -p llvm --run 'scripts/build-app nothing-music 1'
-uv run --locked wp2apps info target/nothing-music.wp2app
-echo "Built: $SDK_DIR/target/nothing-music.wp2app"
+
+if [[ ! -d "$WORK/.git" ]]; then
+  mkdir -p "$(dirname "$WORK")"
+  git clone --quiet --depth 1 https://github.com/fmctools/apps "$WORK"
+fi
+
+mkdir -p "$WORK/apps/nothing-music"
+cp -R "$APP_SRC/." "$WORK/apps/nothing-music/"
+
+cd "$WORK"
+make check
+make test APP=nothing-music
+make build APP=nothing-music
+
+test -s target/nothing-music.wp2app
+uv run --quiet --locked --project .sdk/wp2-apps wp2apps info target/nothing-music.wp2app
+echo "Built package: $WORK/target/nothing-music.wp2app"
