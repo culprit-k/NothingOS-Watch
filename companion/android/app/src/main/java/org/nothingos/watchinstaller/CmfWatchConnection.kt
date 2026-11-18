@@ -5,7 +5,6 @@ import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
-import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
 import android.bluetooth.BluetoothStatusCodes
 import android.content.Context
@@ -34,6 +33,8 @@ internal class CmfWatchConnection(
     private var servicesStatus = BluetoothGatt.GATT_FAILURE
     private val connectedLatch = CountDownLatch(1)
     private val servicesLatch = CountDownLatch(1)
+    private val mtuLatch = CountDownLatch(1)
+    @Volatile private var negotiatedMtu = 23
     private var operationLatch: CountDownLatch? = null
     @Volatile private var operationStatus = BluetoothGatt.GATT_FAILURE
 
@@ -60,6 +61,15 @@ internal class CmfWatchConnection(
             }
 
             val activeGatt = requireNotNull(gatt)
+            // Android 14+ negotiates the platform's preferred 517-byte MTU on the first request.
+            // The largest encrypted DATA frame is 155 bytes, so we require one-frame ATT writes.
+            if (activeGatt.requestMtu(247)) {
+                mtuLatch.await(7, TimeUnit.SECONDS)
+            }
+            require(negotiatedMtu >= 158) {
+                "The negotiated BLE MTU is $negotiatedMtu bytes. This installer needs at least 158 bytes " +
+                    "to send a complete encrypted transfer frame. No package data was sent."
+            }
             if (!activeGatt.discoverServices()) error("Could not start GATT service discovery")
             if (!servicesLatch.await(12, TimeUnit.SECONDS)) throw TimeoutException("Timed out discovering watch services")
             if (servicesStatus != BluetoothGatt.GATT_SUCCESS) {
@@ -313,6 +323,11 @@ internal class CmfWatchConnection(
     override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
         servicesStatus = status
         servicesLatch.countDown()
+    }
+
+    override fun onMtuChanged(gatt: BluetoothGatt, mtu: Int, status: Int) {
+        if (status == BluetoothGatt.GATT_SUCCESS) negotiatedMtu = mtu
+        mtuLatch.countDown()
     }
 
     override fun onDescriptorWrite(gatt: BluetoothGatt, descriptor: BluetoothGattDescriptor, status: Int) {
