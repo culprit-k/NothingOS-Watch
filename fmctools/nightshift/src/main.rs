@@ -207,13 +207,17 @@ mod device {
         let mut sos_step = 0usize;
         let mut sos_due = 0u32;
         let mut last_draw = api.now().wrapping_sub(1000);
+        let mut ping_due = 0u32;
+        let mut focus_done_due = 0u32;
         let _ = api.heart_rate(true);
 
         loop {
             let now = api.now();
+            if ping_due != 0 && (now.wrapping_sub(ping_due) as i32) >= 0 { let _ = api.vibrate(0, HZ); ping_due = 0; }
+            if focus_done_due != 0 && (now.wrapping_sub(focus_done_due) as i32) >= 0 { let _ = api.vibrate(0, HZ); focus_done_due = 0; }
             if focus_running {
                 focus_left = remaining(focus_deadline, now);
-                if focus_left == 0 { focus_running = false; let _ = api.vibrate(650, HZ); sos_due = now.wrapping_add(220); }
+                if focus_left == 0 { focus_running = false; let _ = api.vibrate(650, HZ); focus_done_due = now.wrapping_add(220); }
             }
             if sos_active && (now.wrapping_sub(sos_due) as i32) >= 0 {
                 if sos_step >= SOS_DURATIONS.len() {
@@ -265,7 +269,7 @@ mod device {
                 }
                 TOUCH_DOWN => {
                     match page {
-                        0 => { let _ = api.vibrate(250, HZ); let _ = api.event(25); let _ = api.vibrate(0, HZ); }
+                        0 => { let _ = api.vibrate(250, HZ); ping_due = api.now().wrapping_add(25); }
                         1 => { let _ = api.heart_rate(true); }
                         2 if e.y < 300 => { focus_running = false; focus_left = FOCUS_SECONDS; }
                         2 => {
