@@ -1,21 +1,32 @@
 # CMF Watch Pro 2 installer protocol port
 
-This implementation is based on the public `fmctools/cmf-watch-sdk` source (`wp2apps/link.py`, `install.py`, `blegatt.py`, `package.py`).
+Protocol behavior is ported from the public [fmctools/cmf-watch-sdk](https://github.com/fmctools/cmf-watch-sdk), especially `src/wp2apps/link.py`, `install.py`, `blegatt.py` and `package.py`.
 
-## Implemented in the Android prototype
+## Implemented in Android source
 
-- WP2A package header/body CRC validation (64-byte header).
-- Frame header encoding and streaming notification parser.
-- AES-128-CBC / PKCS padding and CRC32 payload integrity.
-- Installer command IDs and little-endian BEGIN/DATA payload encoders.
-- ATT long-write policy must use GATT write-with-response whenever a frame exceeds MTU minus 3; split write commands are not protocol-compatible.
+- WP2A package validation: 64-byte header, ABI/kind, exact package length, header/body CRC32 and zeroed reserved bytes.
+- INFO header parsing and verification for an installed slot.
+- BLE LE GATT connection, service/characteristic lookup and notification subscription.
+- Shell `AT GETSECRET` retrieval and memory-only 16-byte K channel key.
+- Authenticated AES-128-CBC / PKCS padding / CRC32 framing and notification reassembly/filtering.
+- INFO slot probing, including the stub-version query at slot `0xFE`.
+- Free-slot selection; same-name replacement is held for explicit user confirmation.
+- BEGIN/DATA/END transfer with per-chunk offset acknowledgements and post-install INFO verification.
+- No DELETE, firmware OTA, factory reset, unpair or bond-management implementation.
 
-## Not implemented / not yet physically validated
+## Android transport constraint
 
-- Android GATT service discovery and reliable notification subscription lifecycle.
-- Reading the watch's local shell secret and opening the authenticated app channel.
-- Request/response correlation, retries, timeouts, reconnect handling.
-- INFO slot inspection, free-slot selection, BEGIN/DATA/END installation and post-install INFO verification.
-- Real D398 test against the user's watch.
+The largest encrypted DATA frame is 155 bytes (11-byte protocol header plus 144-byte AES body). Android first requests a larger ATT MTU and this build refuses to start package transfer unless the negotiated MTU is at least 158 bytes. This avoids splitting a protocol frame into incompatible write commands. The exact negotiated MTU and physical behavior still need validation on the owner's Samsung S23 FE and D398.
 
-The app must not expose secret material in UI, logs, analytics, crash reports, or persistent storage. The installer must never invoke DELETE or firmware OTA operations in the initial release. It must verify an existing app slot before replacement and stop safely on every unexpected response.
+## Watch prerequisite
+
+The upstream SDK's own documentation distinguishes stock firmware (no app stub), a patched firmware carrying the stub, and the separately installed loader. A K-channel reply alone is not a substitute for that complete supported setup. This Android project intentionally implements only the app-package transport; it does not build or apply the watch firmware patch or install an unverified OTA.
+
+## Not yet physically validated
+
+- Android LE connection and shared-link behavior while the watch is bonded to the iPhone.
+- GATT notifications, GETSECRET and K-channel requests on the actual D398.
+- Negotiated MTU and long-duration transfer against the real watch.
+- Installing and launching an app on hardware after the required compatible stub and loader are present.
+
+The app must never expose the channel key in UI, logs, analytics, crash reports or persistent storage. A successful package transfer is not proof that the watch can launch the package.
