@@ -16,7 +16,6 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
-import java.util.zip.CRC32
 
 class MainActivity : Activity() {
     private lateinit var status: TextView
@@ -32,9 +31,9 @@ class MainActivity : Activity() {
         if (uri == null) return@registerForActivityResult
         try {
             val bytes = contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: error("Could not read selected file")
-            val info = Wp2Package.validate(bytes)
+            val info = Wp2Protocol.parsePackage(bytes)
             selectedPackage = bytes
-            status.text = "Package verified: ${info.name} v${info.version}\n${bytes.size} bytes · ABI ${info.abi}.
+            status.text = "Package verified: ${info.name} v${info.version}\n${bytes.size} bytes · ABI 1 · ABI minor ${info.abiMinor}.
 Watch transfer is not enabled in this build."
         } catch (e: Exception) {
             selectedPackage = null
