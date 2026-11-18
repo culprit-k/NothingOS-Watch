@@ -26,4 +26,4 @@ Run `bash scripts/build-nightshift-app.sh`. The workflow builds/tests against th
 
 ## Install safety
 
-A `.wp2app` requires the compatible stub-enabled firmware and ABI 1.1 loader. It cannot be installed on untouched stock firmware through the normal CMF app. Do not flash any firmware image unless the exact D398 firmware/board match and recovery path have been verified. The app package itself is installed over BLE through the loader and does not replace stock firmware.
+This build reports ABI 1.3 and therefore requires the matching ABI 1.3 loader and compatible stub-enabled firmware (the SDK's current release identifies stub version 5 for JX402 / stock 1.0.0.73). It cannot be installed on untouched stock firmware through the normal CMF app. Do not flash any firmware image unless the exact D398 firmware/board match and recovery path have been verified. The app package itself is installed over BLE through the loader and does not replace stock firmware. See the SDK's versioned release and OTA notes before attempting any device write.
