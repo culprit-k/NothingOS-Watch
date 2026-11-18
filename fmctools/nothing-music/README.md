@@ -26,7 +26,7 @@ Clone fmctools/cmf-watch-sdk next to this repository, or set CMF_WATCH_SDK to it
 
     CMF_WATCH_SDK=../cmf-watch-sdk bash scripts/build-fmctools-app.sh
 
-See the upstream SDK docs/app-guide.md for toolchain, loader and installation prerequisites. This app requires ABI 1.3 media support.
+See the upstream SDK docs/app-guide.md for toolchain, loader and installation prerequisites. The app is built with ABI 1.3. Its media-bind/media-key extension additionally requires the SDK loader build dated 2026-11-16 or newer; ABI number alone does not prove that extension is present.
 
 ## Host packet protocol
 
