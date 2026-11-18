@@ -1,0 +1,5 @@
+name = "Nothing Music"
+summary = "A Now Playing screen with phone music controls and optional album-art sync"
+version = "0.1.0"
+author = "Abhijith"
+published = false
