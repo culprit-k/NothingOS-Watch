@@ -102,7 +102,9 @@ mod device {
         for x in [112i16, 196, 280] {
             api.rect(x, 360, 74, 52, PANEL);
         }
-        center(api, 378, "PREV       PLAY       NEXT", WHITE);
+        api.text(126, 378, "PREV", WHITE);
+        api.text(211, 378, "PLAY", WHITE);
+        api.text(294, 378, "NEXT", WHITE);
         center(api, 430, "CROWN: BACK", DIM);
         api.show();
     }
