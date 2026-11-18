@@ -1,0 +1,12 @@
+[package]
+name = "nightshift"
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+
+[dependencies]
+cmf-wp2-app.workspace = true
+
+[[bin]]
+name = "nightshift"
+bench = false
