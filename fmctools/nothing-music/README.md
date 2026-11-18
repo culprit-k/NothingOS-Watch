@@ -1,52 +1,30 @@
 # Nothing Music — CMF Watch Pro 2
 
-A Rust application for the cmf-watch-sdk loader. This is a native watch app, not a firmware replacement.
+A native Rust app for the CMF Watch Pro 2 JX402 using the community app SDK.
 
-## Implemented in this source
+## Implemented
 
-- Round-screen Now Playing interface.
-- ABI 1.3 phone-media availability and playback-state events.
-- Play, pause, previous and next via the SDK media-key API.
-- A bounded host-message protocol for track metadata and 32×32 RGB565 album-cover thumbnails.
-- Phone-control mode kept separate from standalone watch playback.
+- Round-screen Now Playing UI.
+- Native phone-media availability and playback-state events through `Api::media_bind`.
+- Play, pause, previous and next through `Api::media_key`.
+- Host-message receiver for track metadata and album-art thumbnails.
+- A clear vinyl fallback when no album-art packet has arrived.
+- Bounded parsing and unit tests for every host packet.
 
-## Explicit limitations
+## Honest limitations
 
-- No audio decoder or watch-speaker output is implemented.
-- No iOS companion currently transfers metadata/artwork.
-- No assumption is made that iOS exposes Apple Music or Spotify global Now Playing artwork to third-party apps.
-- Volume is not exposed by the documented SDK media-key API.
-- This source has not yet been built or tested on a physical D398.
+- The app does not decode audio or send sound to the watch speaker. The public app ABI has no audio-output or speaker API.
+- The SDK's native music interface controls phone playback; it does not provide a local audio player.
+- Track metadata and album art require a companion host to send the documented `NM1` messages. The app-side protocol is implemented, but a released iOS bridge for Apple Music/Spotify is not included yet.
+- The app uses 32×32 RGB565 art (2048 bytes); this is a low-resolution preview, not full cover art.
+- Physical D398 testing and app package build are pending CI.
 
-The physical speaker and the Actions SDK's A2DP/local-player demos do not prove that this Rust app can drive D398 audio hardware. That requires a separate D398-specific backend and physical output test.
+## Build and test
 
-## Build
+The build helper clones the community app repository, overlays this app into its `apps/` workspace, then runs the same pinned SDK build and test targets used by the store:
 
-Clone fmctools/cmf-watch-sdk next to this repository, or set CMF_WATCH_SDK to its checkout:
+```sh
+bash scripts/build-fmctools-app.sh
+```
 
-    CMF_WATCH_SDK=../cmf-watch-sdk bash scripts/build-fmctools-app.sh
-
-See the upstream SDK docs/app-guide.md for toolchain, loader and installation prerequisites. The app is built with ABI 1.3. Its media-bind/media-key extension additionally requires the SDK loader build dated 2026-11-16 or newer; ABI number alone does not prove that extension is present.
-
-## Host packet protocol
-
-All messages are at most 128 bytes:
-
-- Metadata: [0x01, state, title_len, artist_len, title_utf8, artist_utf8]. State: 0 unavailable, 1 paused, 2 playing. Title and artist max 48 bytes each.
-- Artwork begin: [0x02, 32, 32].
-- Artwork chunk: [0x03, offset_u16_le, RGB565 little-endian bytes]. Sequential chunks, up to 125 data bytes.
-- Clear artwork: [0x04].
-
-The host converts cover art to a 32×32 RGB565 thumbnail. It takes 2048 bytes and 17 maximum-size chunks. The app renders pixels as 4×4 rectangles.
-
-## Controls
-
-Three touch zones provide previous, play/pause and next. Crown rotation currently reports volume unavailable. Crown press exits through the loader's BUTTON event.
-
-## Remaining integration gates
-
-1. Build and unit-test against the pinned SDK.
-2. Test media_key and MEDIA events on a physical D398 paired with the iPhone.
-3. Implement an authenticated phone-side SDK host transport for metadata/artwork; wp2apps send is only a developer test route.
-4. Verify whether the iOS/CMF media path provides AVRCP metadata and cover art.
-5. Separately port the Actions local-music/A2DP stack to the exact D398 output route and prove audible output.
+To run the app on a physical watch, use the community `wp2apps install` command only after confirming that the patched firmware and loader are installed. No firmware is flashed by this app build.
